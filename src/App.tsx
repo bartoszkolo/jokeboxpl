@@ -19,6 +19,7 @@ import SearchPage from './pages/SearchPage'
 import { TermsOfService } from './components/TermsOfService'
 import { PrivacyPolicy } from './components/PrivacyPolicy'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { TextFormattingTest } from './components/TextFormattingTest'
 import { AdminLayout } from './components/AdminLayout'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { JokesManagement } from './pages/admin/JokesManagement'
@@ -58,6 +59,7 @@ function App() {
                 <Route path="dowcipy" element={<JokesManagement />} />
                 <Route path="kategorie" element={<CategoriesManagement />} />
                 <Route path="uzytkownicy" element={<UsersManagement />} />
+                <Route path="test-formatowania" element={<TextFormattingTest />} />
               </Route>
 
               {/* 404 Catch-all Route */}

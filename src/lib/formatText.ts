@@ -1,5 +1,5 @@
 /**
- * Format text content for display with proper line breaks and formatting
+ * Format text content for display with proper line breaks and formatting (HTML version)
  */
 export function formatTextContent(text: string): string {
   if (!text) return ''
@@ -13,6 +13,13 @@ export function formatTextContent(text: string): string {
     .replace(/\n{3,}/g, '<br /><br />')
     // Preserve multiple spaces
     .replace(/  /g, ' &nbsp;')
+}
+
+/**
+ * Alternative: Use CSS approach for textareas - just sanitize the text
+ */
+export function formatTextContentCSS(text: string): string {
+  return sanitizeText(text)
 }
 
 /**

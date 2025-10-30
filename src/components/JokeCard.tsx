@@ -191,10 +191,10 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
       <Link to={`/dowcip/${joke.slug}`}>
         <div
           className="joke-content mb-6 hover:text-content-muted transition-colors duration-200 text-content leading-relaxed"
-          dangerouslySetInnerHTML={{
-            __html: formatTextContent(sanitizeText(joke.content))
-          }}
-        />
+          style={{ whiteSpace: 'pre-wrap' }}
+        >
+          {sanitizeText(joke.content)}
+        </div>
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
