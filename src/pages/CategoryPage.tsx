@@ -110,6 +110,29 @@ export function CategoryPage() {
     }
   }
 
+  const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
+    if (voteData) {
+      // Update just the specific joke that was voted on with animation
+      setJokes(prevJokes =>
+        prevJokes.map(joke => {
+          if (joke.id === jokeId) {
+            return {
+              ...joke,
+              upvotes: voteData.upvotes ?? joke.upvotes,
+              downvotes: voteData.downvotes ?? joke.downvotes,
+              score: voteData.score ?? joke.score,
+              userVote: voteData.userVote ?? joke.userVote
+            }
+          }
+          return joke
+        })
+      )
+    } else {
+      // Fallback to full refresh if no vote data provided
+      fetchCategory(true)
+    }
+  }
+
   const loadMore = () => {
     if (!loadingMore && hasMore) {
       setCurrentPage(prev => prev + 1)
@@ -166,7 +189,7 @@ export function CategoryPage() {
         ) : (
           <div className="space-y-4">
             {jokes.map(joke => (
-              <JokeCard key={joke.id} joke={joke} onVoteChange={() => fetchCategory(true)} />
+              <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} />
             ))}
           </div>
         )}

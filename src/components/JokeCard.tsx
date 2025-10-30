@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom'
 
 interface JokeCardProps {
   joke: JokeWithAuthor
-  onVoteChange?: () => void
+  onVoteChange?: (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => void
 }
 
 export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
@@ -89,12 +89,33 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
       setAnimatingUpvotes(newUpvotes)
       setAnimatingDownvotes(newDownvotes)
 
+      // Calculate new user vote
+      let newUserVote = null
+      if (existingVote) {
+        if (existingVote.vote_value !== voteValue) {
+          // User changed their vote
+          newUserVote = { vote_value: voteValue }
+        } else {
+          // User removed their vote
+          newUserVote = null
+        }
+      } else {
+        // New vote
+        newUserVote = { vote_value: voteValue }
+      }
+
       // Reset animation after it completes
       setTimeout(() => {
         setScoreAnimation(null)
       }, 600)
 
-      onVoteChange?.()
+      // Return the updated vote data to parent
+      onVoteChange?.(joke.id, {
+        upvotes: newUpvotes,
+        downvotes: newDownvotes,
+        score: newScore,
+        userVote: newUserVote
+      })
     } catch (error) {
       console.error('Error voting:', error)
     } finally {
