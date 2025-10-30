@@ -18,6 +18,7 @@ import { RandomJokePage } from './pages/RandomJokePage'
 import SearchPage from './pages/SearchPage'
 import { TermsOfService } from './components/TermsOfService'
 import { PrivacyPolicy } from './components/PrivacyPolicy'
+import { NotFoundPage } from './pages/NotFoundPage'
 import { AdminLayout } from './components/AdminLayout'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { JokesManagement } from './pages/admin/JokesManagement'
@@ -58,6 +59,9 @@ function App() {
                 <Route path="kategorie" element={<CategoriesManagement />} />
                 <Route path="uzytkownicy" element={<UsersManagement />} />
               </Route>
+
+              {/* 404 Catch-all Route */}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
           <Footer />
