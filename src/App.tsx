@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from './contexts/AuthContext'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
+import { SEO, createWebsiteStructuredData } from './components/SEO'
 import { AdminRoute } from './components/AdminRoute'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
@@ -26,11 +28,15 @@ import { SafeUsersManagement } from './pages/admin/SafeUsersManagement'
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <Navbar />
-          <main className="flex-grow">
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <SEO
+              structuredData={createWebsiteStructuredData()}
+            />
+            <Navbar />
+            <main className="flex-grow">
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/wyszukiwarka" element={<SearchPage />} />
@@ -58,6 +64,7 @@ function App() {
         </div>
       </AuthProvider>
     </BrowserRouter>
+    </HelmetProvider>
   )
 }
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { JokeCard } from '@/components/JokeCard'
+import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
 import { Loader2, Search as SearchIcon } from 'lucide-react'
 
 export default function SearchPage() {
@@ -98,7 +99,21 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <>
+      <SEO
+        title={query ? `Wyniki wyszukiwania: "${query}"` : 'Wyszukiwarka dowcipów'}
+        description={query
+          ? `Znajdź najlepsze dowcipy dla zapytania "${query}". Odkryj śmieszne żarty dopasowane do Twoich preferencji.`
+          : 'Wyszukaj najlepsze polskie dowcipy. Znajdź śmieszne żarty według kategorii i słów kluczowych.'
+        }
+        canonical={query ? `/wyszukiwarka?q=${encodeURIComponent(query)}` : '/wyszukiwarka'}
+        noindex={!query} // Don't index empty search pages
+        structuredData={createBreadcrumbStructuredData([
+          { name: 'Strona główna', url: 'https://jokebox.pl' },
+          { name: 'Wyszukiwarka', url: 'https://jokebox.pl/wyszukiwarka' }
+        ])}
+      />
+      <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Nagłówek */}
         <div className="mb-8">
@@ -181,5 +196,6 @@ export default function SearchPage() {
         )}
       </div>
     </div>
+    </>
   )
 }

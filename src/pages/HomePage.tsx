@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { fetchJokesWithDetails } from '@/lib/jokesHelper'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
+import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
 import { useAuth } from '@/contexts/AuthContext'
 import { Link } from 'react-router-dom'
 
@@ -130,8 +131,23 @@ export function HomePage() {
     }
   }
 
+  const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
+
   return (
-    <div className="min-h-screen bg-muted/30">
+    <>
+      <SEO
+        title={selectedCategoryData ? `${selectedCategoryData.name} - Dowcipy` : 'Najlepsze dowcipy'}
+        description={selectedCategoryData
+          ? `Odkryj najlepsze dowcipy w kategorii ${selectedCategoryData.name}. Śmiej się razem z nami!`
+          : 'Jokebox to miejsce z najlepszymi polskimi dowcipami. Przeglądaj, dodawaj i głosuj na śmieszne żarty!'
+        }
+        canonical={selectedCategoryData ? `/kategoria/${selectedCategoryData.slug}` : '/'}
+        structuredData={createBreadcrumbStructuredData([
+          { name: 'Strona główna', url: 'https://jokebox.pl' },
+          ...(selectedCategoryData ? [{ name: selectedCategoryData.name, url: `https://jokebox.pl/kategoria/${selectedCategoryData.slug}` }] : [])
+        ])}
+      />
+      <div className="min-h-screen bg-muted/30">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
   
         {/* Main Content Layout */}
@@ -265,5 +281,6 @@ export function HomePage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

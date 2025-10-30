@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { fetchJokesWithDetails } from '@/lib/jokesHelper'
 import { JokeWithAuthor } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
+import { SEO, createJokeStructuredData, createBreadcrumbStructuredData } from '@/components/SEO'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function JokeDetailPage() {
@@ -86,7 +87,23 @@ export function JokeDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      {joke && (
+        <SEO
+          title={`Dowcip: ${joke.content.substring(0, 80)}...`}
+          description={`${joke.content.substring(0, 160)}${joke.content.length > 160 ? '...' : ''} - dodany przez ${joke.author.username}`}
+          canonical={`/dowcip/${joke.slug}`}
+          ogType="article"
+          structuredData={[
+            createJokeStructuredData(joke),
+            createBreadcrumbStructuredData([
+              { name: 'Strona główna', url: 'https://jokebox.pl' },
+              { name: 'Dowcip', url: `https://jokebox.pl/dowcip/${joke.slug}` }
+            ])
+          ]}
+        />
+      )}
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => navigate(-1)}
@@ -132,5 +149,6 @@ export function JokeDetailPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { fetchJokesWithDetails } from '@/lib/jokesHelper'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
+import { SEO, createCategoryStructuredData, createBreadcrumbStructuredData } from '@/components/SEO'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function CategoryPage() {
@@ -156,7 +157,22 @@ export function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      {category && (
+        <SEO
+          title={`${category.name} - Dowcipy`}
+          description={category.description || `Najlepsze dowcipy w kategorii ${category.name}. Odkryj śmieszne żarty na temat ${category.name}!`}
+          canonical={`/kategoria/${category.slug}`}
+          structuredData={[
+            createCategoryStructuredData({ ...category, joke_count: jokes.length }),
+            createBreadcrumbStructuredData([
+              { name: 'Strona główna', url: 'https://jokebox.pl' },
+              { name: category.name, url: `https://jokebox.pl/kategoria/${category.slug}` }
+            ])
+          ]}
+        />
+      )}
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => navigate('/')}
@@ -221,5 +237,6 @@ export function CategoryPage() {
         )}
       </div>
     </div>
+    </>
   )
 }
