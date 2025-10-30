@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -6,11 +6,14 @@ import {
   Tags,
   Users,
   ChevronRight,
-  Crown
+  Crown,
+  Menu,
+  X
 } from 'lucide-react'
 
 export const AdminLayout: React.FC = () => {
   const location = useLocation()
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   const menuItems = [
     {
@@ -50,17 +53,34 @@ export const AdminLayout: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-accent to-accent-dark border-b border-accent-dark shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <Crown className="h-8 w-8 text-accent-foreground mr-3" />
-            <h1 className="text-xl font-bold text-accent-foreground font-ui">Panel Administratora</h1>
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <Crown className="h-8 w-8 text-accent-foreground mr-3" />
+              <h1 className="text-xl font-bold text-accent-foreground font-ui">Panel Administratora</h1>
+            </div>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent-foreground transition-all duration-200"
+              title={isCollapsed ? "Rozwiń panel boczny" : "Zwiń panel boczny"}
+            >
+              {isCollapsed ? (
+                <Menu className="h-5 w-5" />
+              ) : (
+                <X className="h-5 w-5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className={`grid gap-6 transition-all duration-300 ${
+          isCollapsed
+            ? 'grid-cols-1 md:grid-cols-12'
+            : 'grid-cols-1 md:grid-cols-4'
+        }`}>
           {/* Sidebar */}
-          <div className="md:col-span-1">
+          <div className={`${isCollapsed ? 'md:col-span-1' : 'md:col-span-1'} transition-all duration-300`}>
             <nav className="space-y-2">
               {menuItems.map((item) => {
                 const Icon = item.icon
@@ -75,13 +95,20 @@ export const AdminLayout: React.FC = () => {
                         ? 'bg-accent/10 text-accent border-l-4 border-accent shadow-sm'
                         : 'text-content-muted hover:bg-muted/50 hover:text-foreground'
                     }`}
+                    title={isCollapsed ? item.title : undefined}
                   >
-                    <Icon className="mr-3 h-5 w-5" />
-                    <div className="flex-1">
-                      <div className="font-medium">{item.title}</div>
-                      <div className="text-xs text-content-light mt-0.5">{item.description}</div>
-                    </div>
-                    {active && <ChevronRight className="h-4 w-4" />}
+                    <Icon className={`${
+                      isCollapsed ? 'mx-auto' : 'mr-3'
+                    } h-5 w-5 flex-shrink-0 transition-all duration-300 ${
+                      isCollapsed ? 'group-hover:scale-110' : ''
+                    }`} />
+                    {!isCollapsed && (
+                      <div className="flex-1">
+                        <div className="font-medium">{item.title}</div>
+                        <div className="text-xs text-content-light mt-0.5">{item.description}</div>
+                      </div>
+                    )}
+                    {!isCollapsed && active && <ChevronRight className="h-4 w-4" />}
                   </Link>
                 )
               })}
@@ -89,7 +116,11 @@ export const AdminLayout: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="md:col-span-3">
+          <div className={`${
+            isCollapsed
+              ? 'md:col-span-11'
+              : 'md:col-span-3'
+          } transition-all duration-300`}>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <Outlet />
             </div>
