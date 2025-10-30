@@ -5,6 +5,7 @@ export async function fetchJokesWithDetails(options: {
   status?: string
   categoryId?: number | null
   limit?: number
+  offset?: number
   orderBy?: 'created_at' | 'score'
   ascending?: boolean
 } = {}) {
@@ -12,6 +13,7 @@ export async function fetchJokesWithDetails(options: {
     status = 'published',
     categoryId = null,
     limit = 50,
+    offset = 0,
     orderBy = 'created_at',
     ascending = false
   } = options
@@ -20,6 +22,7 @@ export async function fetchJokesWithDetails(options: {
     p_status: status,
     p_category_id: categoryId,
     p_limit: limit,
+    p_offset: offset,
     p_order_by: orderBy,
     p_ascending: ascending
   })

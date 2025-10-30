@@ -14,6 +14,11 @@ export function CategoryPage() {
   const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
   const [category, setCategory] = useState<Category | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [currentPage, setCurrentPage] = useState(0)
+
+  const JOKES_PER_PAGE = 15
 
   useEffect(() => {
     if (slug) {
@@ -21,10 +26,15 @@ export function CategoryPage() {
     }
   }, [slug, user])
 
-  const fetchCategory = async () => {
+  const fetchCategory = async (reset = false) => {
     if (!slug) return
 
-    setLoading(true)
+    if (reset) {
+      setLoading(true)
+    } else {
+      setLoadingMore(true)
+    }
+
     try {
       const { data: categoryData } = await supabase
         .from('categories')
@@ -37,18 +47,35 @@ export function CategoryPage() {
         return
       }
 
-      setCategory(categoryData)
+      if (reset) {
+        setCategory(categoryData)
+        setJokes([])
+        setHasMore(true)
+        setCurrentPage(0)
+      }
+
+      const page = reset ? 0 : currentPage
+      const offset = page * JOKES_PER_PAGE
 
       const jokesData = await fetchJokesWithDetails({
         status: 'published',
         categoryId: categoryData.id,
+        limit: JOKES_PER_PAGE,
+        offset: offset,
         orderBy: 'created_at',
         ascending: false
       })
 
+      // Check if there are more jokes to load
+      if (jokesData.length < JOKES_PER_PAGE) {
+        setHasMore(false)
+      }
+
+      let processedJokes = jokesData
+
       if (jokesData && user) {
         const jokeIds = jokesData.map(j => j.id)
-        
+
         const [{ data: votesData }, { data: favoritesData }] = await Promise.all([
           supabase
             .from('votes')
@@ -62,21 +89,31 @@ export function CategoryPage() {
             .in('joke_id', jokeIds)
         ])
 
-        const jokesWithUserData = jokesData.map(joke => ({
+        processedJokes = jokesData.map(joke => ({
           ...joke,
           userVote: votesData?.find(v => v.joke_id === joke.id) || null,
           isFavorite: favoritesData?.some(f => f.joke_id === joke.id) || false
         }))
+      }
 
-        setJokes(jokesWithUserData)
-      } else if (jokesData) {
-        setJokes(jokesData)
+      if (reset) {
+        setJokes(processedJokes)
+      } else {
+        setJokes(prevJokes => [...prevJokes, ...processedJokes])
       }
     } catch (error) {
       console.error('Error fetching category:', error)
       navigate('/')
     } finally {
       setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      setCurrentPage(prev => prev + 1)
+      fetchCategory(false)
     }
   }
 
@@ -116,7 +153,7 @@ export function CategoryPage() {
             </p>
           )}
           <p className="text-sm text-gray-500 mt-2">
-            Znaleziono {jokes.length} {jokes.length === 1 ? 'dowcip' : 'dowcipów'}
+            Wyświetlono {jokes.length} {jokes.length === 1 ? 'dowcip' : 'dowcipów'}{hasMore ? ' (wczytywanie...)' : ''}
           </p>
         </div>
 
@@ -129,8 +166,34 @@ export function CategoryPage() {
         ) : (
           <div className="space-y-4">
             {jokes.map(joke => (
-              <JokeCard key={joke.id} joke={joke} onVoteChange={fetchCategory} />
+              <JokeCard key={joke.id} joke={joke} onVoteChange={() => fetchCategory(true)} />
             ))}
+          </div>
+        )}
+
+        {/* Load More Button */}
+        {hasMore && jokes.length > 0 && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingMore ? (
+                <>
+                  <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Ładowanie...
+                </>
+              ) : (
+                'Wczytaj więcej dowcipów'
+              )}
+            </button>
+          </div>
+        )}
+
+        {!hasMore && jokes.length > 0 && (
+          <div className="mt-8 text-center text-gray-500">
+            <p>To już wszystkie dowcipy w tej kategorii!</p>
           </div>
         )}
       </div>
