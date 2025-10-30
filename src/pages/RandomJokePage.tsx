@@ -90,7 +90,7 @@ export function RandomJokePage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-12">
+      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -105,7 +105,7 @@ export function RandomJokePage() {
             <h1 className="text-4xl font-bold text-gradient mb-4 heading">
               Losowe Dowcipy
             </h1>
-            <p className="text-lg text-content-muted max-w-4xl mx-auto subheading">
+            <p className="text-lg text-content-muted max-w-2xl mx-auto subheading">
               Odkrywaj nowe żarty każdego dnia! Losuj dowcipy lub sprawdź dowcip dnia.
             </p>
           </div>
@@ -133,7 +133,7 @@ export function RandomJokePage() {
               ) : randomJoke ? (
                 <div className="text-center space-y-6">
                   <div className="bg-card/80 backdrop-blur-sm rounded-xl p-8 border border-border">
-                    <p className="joke-content text-xl font-medium max-w-4xl mx-auto leading-relaxed">
+                    <p className="joke-content text-xl font-medium max-w-3xl mx-auto leading-relaxed">
                       {randomJoke.content}
                     </p>
                   </div>
@@ -205,7 +205,7 @@ export function RandomJokePage() {
               ) : dailyJoke ? (
                 <div className="text-center space-y-4">
                   <div className="bg-card/60 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-                    <p className="joke-content text-lg max-w-3xl mx-auto leading-relaxed">
+                    <p className="joke-content text-lg max-w-2xl mx-auto leading-relaxed">
                       {dailyJoke.content}
                     </p>
                   </div>

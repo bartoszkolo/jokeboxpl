@@ -88,21 +88,6 @@
     line-height: 1.7;
   }
 
-  /* Enhanced typography for larger screens */
-  @media (min-width: 1024px) {
-    .joke-content {
-      @apply text-xl;
-      line-height: 1.6;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .joke-content {
-      @apply text-2xl;
-      line-height: 1.5;
-    }
-  }
-
   .ui-text {
     @apply font-ui text-foreground;
   }
