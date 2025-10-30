@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { fetchJokesWithDetails } from '@/lib/jokesHelper'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
+import { RandomJoke } from '@/components/RandomJoke'
 import { useAuth } from '@/contexts/AuthContext'
 import { Link } from 'react-router-dom'
 
@@ -72,69 +73,108 @@ export function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-muted/30">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-gradient mb-4 heading">
             Witaj w Jokebox!
           </h1>
-          <p className="text-gray-600">
-            Odkryj najlepsze polskie dowcipy, głosuj i dodawaj własne
+          <p className="text-xl text-content-muted max-w-2xl mx-auto subheading">
+            Odkryj najlepsze polskie dowcipy, głosuj na swoje ulubione i dodawaj własne żarty
           </p>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-full transition ${
-              selectedCategory === null
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Wszystkie
-          </button>
-          {categories.map(category => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-full transition ${
-                selectedCategory === category.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {category.name}
-            </button>
-          ))}
-        </div>
+        {/* Random Joke & Daily Joke Section */}
+        <RandomJoke />
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Ładowanie dowcipów...</p>
-          </div>
-        ) : jokes.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-600 text-lg mb-4">
-              Brak dowcipów w tej kategorii
-            </p>
-            {user && (
-              <Link
-                to="/dodaj"
-                className="inline-block bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition"
-              >
-                Dodaj pierwszy dowcip
-              </Link>
-            )}
-          </div>
-        ) : (
+        {/* Main Content Layout */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Content Area */}
+          <div className="flex-1">
+            {/* Jokes Content */}
+            <div className="bg-card rounded-xl shadow-sm border border-border p-8">
+          {loading ? (
+            <div className="text-center py-16">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <p className="mt-4 text-content-muted subheading">Ładowanie dowcipów...</p>
+            </div>
+          ) : jokes.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="mb-6">
+                <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-4xl">😄</span>
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2 heading">
+                  Brak dowcipów w tej kategorii
+                </h3>
+                <p className="text-content-muted mb-6">
+                  Bądź pierwszy i dodaj śmieszny dowcip!
+                </p>
+              </div>
+              {user && (
+                <Link to="/dodaj" className="btn-primary">
+                  Dodaj pierwszy dowcip
+                </Link>
+              )}
+              {!user && (
+                <div className="space-y-3">
+                  <p className="text-content-muted">
+                    Zaloguj się, aby dodawać dowcipy
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <Link to="/logowanie" className="btn-outline">
+                      Zaloguj się
+                    </Link>
+                    <Link to="/rejestracja" className="btn-primary">
+                      Załóż konto
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
           <div className="space-y-4">
             {jokes.map(joke => (
               <JokeCard key={joke.id} joke={joke} onVoteChange={fetchJokes} />
             ))}
           </div>
         )}
+        </div>
+          </div>
+
+          {/* Right Sidebar - Categories */}
+          <div className="lg:w-64">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6 sticky top-24">
+              <h2 className="text-lg font-semibold text-foreground mb-4 heading">Kategorie</h2>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                    selectedCategory === null
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'bg-background text-content-muted hover:bg-primary hover:text-primary-foreground border border-border'
+                  }`}
+                >
+                  Wszystkie
+                </button>
+                {categories.map(category => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                      selectedCategory === category.id
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'bg-background text-content-muted hover:bg-primary hover:text-primary-foreground border border-border'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

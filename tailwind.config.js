@@ -23,20 +23,28 @@ module.exports = {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#2B5D3A',
-					foreground: 'hsl(var(--primary-foreground))',
+					DEFAULT: '#FF6B35', // Vibrant orange-sunset
+					foreground: '#FFFFFF',
+					light: '#FF8F65',
+					dark: '#E5551F',
 				},
 				secondary: {
-					DEFAULT: '#4A90E2',
-					foreground: 'hsl(var(--secondary-foreground))',
+					DEFAULT: '#4ECDC4', // Electric teal/turquoise
+					foreground: '#FFFFFF',
+					light: '#6EE7DE',
+					dark: '#38B2A8',
 				},
 				accent: {
-					DEFAULT: '#F5A623',
-					foreground: 'hsl(var(--accent-foreground))',
+					DEFAULT: '#F5A623', // Sunny yellow-orange (keep current)
+					foreground: '#111111',
+					light: '#FFC947',
+					dark: '#D4941A',
 				},
 				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))',
+					DEFAULT: '#E63946', // Strong red
+					foreground: '#FFFFFF',
+					light: '#FF6B6B',
+					dark: '#C9184A',
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
@@ -49,6 +57,29 @@ module.exports = {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))',
+				},
+				// Custom joke-specific colors
+				content: {
+					DEFAULT: '#111111', // Deep black for max readability
+					muted: '#666666',   // Medium gray for secondary text
+					light: '#999999',   // Light gray for meta info
+				},
+				brand: {
+					yellow: '#F5A623', // Brand yellow for admin elements
+					orange: '#FF6B35', // Brand orange for CTAs
+				}
+			},
+			fontFamily: {
+				ui: ['Inter', 'system-ui', 'sans-serif'], // Clean UI font
+				content: ['Lora', 'Georgia', 'serif'], // Elegant serif for jokes
+				mono: ['JetBrains Mono', 'monospace'], // Developer-friendly mono
+			},
+			typography: {
+				content: {
+					css: {
+						lineHeight: '1.7', // Increased readability
+						color: '#111111',
+					},
 				},
 			},
 			borderRadius: {

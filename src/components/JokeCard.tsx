@@ -96,13 +96,13 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
   const userVoteValue = joke.userVote?.vote_value
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+    <article className="joke-card">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
           {joke.categories && (
             <Link
               to={`/kategoria/${joke.categories.slug}`}
-              className="text-sm text-blue-600 hover:underline font-medium"
+              className="text-sm text-secondary hover:text-secondary-dark font-ui font-medium transition-colors duration-200"
             >
               {joke.categories.name}
             </Link>
@@ -110,75 +110,79 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
         </div>
         <button
           onClick={handleSpeak}
-          className="text-gray-500 hover:text-blue-600 transition"
+          className="text-content-light hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-primary/5"
           title="Przeczytaj na głos"
         >
-          <Volume2 size={20} />
+          <Volume2 size={18} />
         </button>
       </div>
 
       <Link to={`/dowcip/${joke.slug}`}>
-        <p className="text-gray-800 text-lg mb-4 whitespace-pre-wrap hover:text-gray-600 transition">
+        <p className="joke-content mb-6 hover:text-content-muted transition-colors duration-200">
           {joke.content}
         </p>
       </Link>
 
-      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
+        <div className="flex items-center gap-2">
+          {/* Vote Buttons */}
           <button
             onClick={() => handleVote(1)}
             disabled={!user || isVoting}
-            className={`flex items-center space-x-1 ${
-              userVoteValue === 1
-                ? 'text-green-600'
-                : 'text-gray-500 hover:text-green-600'
-            } transition disabled:opacity-50`}
+            className={`vote-btn upvote ${
+              userVoteValue === 1 ? 'active' : ''
+            } disabled:opacity-50`}
           >
-            <ThumbsUp size={20} />
-            <span className="font-medium">{joke.upvotes}</span>
+            <ThumbsUp className="h-4 w-4" />
+            <span className="text-sm font-medium">{joke.upvotes}</span>
           </button>
 
           <button
             onClick={() => handleVote(-1)}
             disabled={!user || isVoting}
-            className={`flex items-center space-x-1 ${
-              userVoteValue === -1
-                ? 'text-red-600'
-                : 'text-gray-500 hover:text-red-600'
-            } transition disabled:opacity-50`}
+            className={`vote-btn downvote ${
+              userVoteValue === -1 ? 'active' : ''
+            } disabled:opacity-50`}
           >
-            <ThumbsDown size={20} />
-            <span className="font-medium">{joke.downvotes}</span>
+            <ThumbsDown className="h-4 w-4" />
+            <span className="text-sm font-medium">{joke.downvotes}</span>
           </button>
 
-          <div className="flex items-center space-x-1 text-gray-600 font-semibold">
-            <span>Score:</span>
-            <span className={joke.score > 0 ? 'text-green-600' : joke.score < 0 ? 'text-red-600' : ''}>
-              {joke.score}
+          {/* Score Display */}
+          <div className="px-3 py-1 bg-muted rounded-lg">
+            <span className={`text-sm font-bold ${
+              joke.score > 0 ? 'text-secondary' :
+              joke.score < 0 ? 'text-destructive' : 'text-foreground'
+            }`}>
+              {joke.score > 0 ? '+' : ''}{joke.score}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           {user && (
             <button
               onClick={handleFavorite}
-              className={`${
-                isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
-              } transition`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                isFavorite
+                  ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
+                  : 'text-content-muted hover:text-destructive hover:bg-destructive/5'
+              }`}
               title="Dodaj do ulubionych"
             >
-              <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
+              <Heart size={16} className={isFavorite ? 'fill-current' : ''} />
+              <span className="text-sm">Ulubione</span>
             </button>
           )}
 
           <div className="relative">
             <button
               onClick={() => setShowShare(!showShare)}
-              className="text-gray-500 hover:text-blue-600 transition"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-content-muted hover:text-primary hover:bg-primary/5 transition-all duration-200"
               title="Udostępnij"
             >
-              <Share2 size={20} />
+              <Share2 size={16} />
+              <span className="text-sm">Udostępnij</span>
             </button>
 
             {showShare && (
@@ -204,11 +208,15 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
         </div>
       </div>
 
-      <div className="mt-3 text-sm text-gray-500">
-        <span>Dodane przez: {joke.profiles?.username || 'Anonim'}</span>
-        <span className="mx-2">•</span>
-        <span>{new Date(joke.created_at).toLocaleDateString('pl-PL')}</span>
+      <div className="mt-4 flex flex-wrap items-center gap-4 meta-text pt-4 border-t border-border">
+        <div className="flex items-center gap-1">
+          <span>Dodane przez:</span>
+          <span className="font-medium">{joke.profiles?.username || 'Anonim'}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span>{new Date(joke.created_at).toLocaleDateString('pl-PL')}</span>
+        </div>
       </div>
-    </div>
+    </article>
   )
 }

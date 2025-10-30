@@ -48,11 +48,11 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-yellow-400 border-b border-yellow-500">
+      <div className="bg-gradient-to-r from-accent to-accent-dark border-b border-accent-dark shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <Crown className="h-8 w-8 text-yellow-900 mr-3" />
-            <h1 className="text-xl font-bold text-yellow-900">Panel Administratora</h1>
+            <Crown className="h-8 w-8 text-accent-foreground mr-3" />
+            <h1 className="text-xl font-bold text-accent-foreground font-ui">Panel Administratora</h1>
           </div>
         </div>
       </div>
@@ -70,16 +70,16 @@ export const AdminLayout: React.FC = () => {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className={`group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all ${
+                    className={`group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                       active
-                        ? 'bg-yellow-100 text-yellow-900 border-l-4 border-yellow-600'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-accent/10 text-accent border-l-4 border-accent shadow-sm'
+                        : 'text-content-muted hover:bg-muted/50 hover:text-foreground'
                     }`}
                   >
                     <Icon className="mr-3 h-5 w-5" />
                     <div className="flex-1">
                       <div className="font-medium">{item.title}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
+                      <div className="text-xs text-content-light mt-0.5">{item.description}</div>
                     </div>
                     {active && <ChevronRight className="h-4 w-4" />}
                   </Link>

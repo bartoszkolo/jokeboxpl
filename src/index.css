@@ -1,6 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 222.2 84% 4.9%; /* Deep black */
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 18 91% 61%; /* Vibrant orange #FF6B35 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 70% 55%; /* Electric teal #4ECDC4 */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 40% 98%; /* Very light gray */
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 38 95% 57%; /* Sunny yellow #F5A623 */
+    --accent-foreground: 222.2 84% 4.9%;
+
+    --destructive: 355 91% 57%; /* Strong red #E63946 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 40% 95%; /* Light borders */
+    --input: 210 40% 95%;
+    --ring: 18 91% 61%; /* Orange focus rings */
+
+    --radius: 0.75rem; /* Rounded corners */
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 18 91% 61%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 70% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 38 95% 57%;
+    --accent-foreground: 222.2 84% 4.9%;
+
+    --destructive: 355 91% 57%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 18 91% 61%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-ui;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography for different content types */
+  .joke-content {
+    @apply font-content text-lg leading-relaxed text-content;
+    line-height: 1.7;
+  }
+
+  .ui-text {
+    @apply font-ui text-foreground;
+  }
+
+  .meta-text {
+    @apply font-ui text-sm text-content-light;
+  }
+
+  .heading {
+    @apply font-ui font-semibold text-foreground;
+  }
+
+  .subheading {
+    @apply font-ui font-medium text-content-muted;
+  }
+}
+
+@layer components {
+  /* Button components with new vibrant colors */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary-dark font-ui font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary-dark font-ui font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .btn-accent {
+    @apply bg-accent text-accent-foreground hover:bg-accent-dark font-ui font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-ui font-medium px-6 py-3 rounded-lg transition-all duration-200;
+  }
+
+  /* Vote buttons */
+  .vote-btn {
+    @apply flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2;
+  }
+
+  .vote-btn.upvote {
+    @apply border-secondary text-secondary hover:bg-secondary hover:text-white;
+  }
+
+  .vote-btn.downvote {
+    @apply border-destructive text-destructive hover:bg-destructive hover:text-white;
+  }
+
+  .vote-btn.active.upvote {
+    @apply bg-secondary text-white;
+  }
+
+  .vote-btn.active.downvote {
+    @apply bg-destructive text-white;
+  }
+
+  /* Card components */
+  .joke-card {
+    @apply bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6;
+  }
+
+  .category-card {
+    @apply bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 hover:border-primary/50;
+  }
+
+  /* Input components */
+  .input-field {
+    @apply w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+  }
+
+  .search-field {
+    @apply input-field pl-12;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-primary-dark;
+  }
+
+  .bg-gradient-secondary {
+    @apply bg-gradient-to-r from-secondary to-secondary-dark;
+  }
+}
 
 * {
   margin: 0;
@@ -8,15 +181,23 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+code {
+  font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
 }
