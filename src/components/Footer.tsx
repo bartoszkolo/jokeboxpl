@@ -10,9 +10,12 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* O nas */}
-          <div>
-            <h3 className="text-white text-lg font-bold mb-4">Jokebox</h3>
-            <p className="text-sm text-orange-200">
+          <div className="flex flex-col items-center md:items-start">
+            <div className="flex items-center space-x-2 mb-4">
+              <img src="/jokebox_logo.png" alt="Jokebox" className="h-8 w-8" />
+              <h3 className="text-white text-lg font-bold">Jokebox</h3>
+            </div>
+            <p className="text-sm text-orange-200 text-center md:text-left">
               Najlepsza platforma z polskimi dowcipami. Czytaj, dodawaj i głosuj na swoje ulubione żarty!
             </p>
           </div>

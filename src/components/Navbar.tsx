@@ -14,6 +14,7 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16 gap-4">
           <div className="flex items-center space-x-4 md:space-x-8">
             <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+              <img src="/jokebox_logo.png" alt="Jokebox" className="h-8 w-8" />
               <span className="text-2xl font-bold text-white">Jokebox</span>
             </Link>
             <div className="hidden lg:flex items-center space-x-4">
