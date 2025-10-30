@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { LogOut, User, Plus, Crown, Shuffle } from 'lucide-react'
+import { LogOut, User, Plus, Crown, Shuffle, ChevronDown, Settings } from 'lucide-react'
 import { SearchBar } from './SearchBar'
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   return (
     <nav className="bg-background/95 backdrop-blur-sm border-b border-border shadow-sm sticky top-0 z-50">
@@ -56,17 +58,56 @@ export function Navbar() {
                   <Plus size={18} />
                   <span className="hidden sm:inline">Dodaj dowcip</span>
                 </Link>
-                <div className="flex items-center space-x-2 ui-text meta-text">
-                  <User size={18} />
-                  <span className="hidden sm:inline">{profile?.username}</span>
-                </div>
+                <div className="relative">
                 <button
-                  onClick={signOut}
-                  className="flex items-center space-x-1 ui-text meta-text hover:text-destructive transition-colors duration-200"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-muted/50 transition-all duration-200"
                 >
-                  <LogOut size={18} />
-                  <span className="hidden sm:inline">Wyloguj</span>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-medium text-sm">
+                    {profile?.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="hidden sm:block text-right">
+                    <div className="text-sm font-medium text-foreground">{profile?.username}</div>
+                    <div className="text-xs text-content-muted">
+                      {profile?.is_admin ? 'Administrator' : 'Użytkownik'}
+                    </div>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-content-muted transition-transform duration-200 ${
+                    isDropdownOpen ? 'rotate-180' : ''
+                  }`} />
                 </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-background border border-border rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-4 py-3 border-b border-border">
+                      <p className="text-sm font-medium text-foreground">{profile?.username}</p>
+                      <p className="text-xs text-content-muted">
+                        {profile?.is_admin ? 'Administrator' : 'Użytkownik'}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        signOut()
+                        setIsDropdownOpen(false)
+                      }}
+                      className="flex items-center space-x-3 w-full px-4 py-2 text-left hover:bg-muted/50 transition-colors duration-200"
+                    >
+                      <LogOut size={16} className="text-content-muted" />
+                      <span className="text-sm text-content-muted hover:text-foreground">Wyloguj</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Close dropdown when clicking outside */}
+                {isDropdownOpen && (
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsDropdownOpen(false)}
+                  />
+                )}
+              </div>
               </>
             ) : (
               <Link
