@@ -123,7 +123,7 @@ export function FavoritesPage() {
             </p>
             <button
               onClick={() => navigate('/')}
-              className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition"
+              className="btn-primary"
             >
               Przeglądaj dowcipy
             </button>

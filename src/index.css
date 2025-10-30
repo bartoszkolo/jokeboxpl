@@ -17,6 +17,7 @@
 
     --primary: 18 91% 61%; /* Vibrant orange #FF6B35 */
     --primary-foreground: 0 0% 100%;
+    --primary-dark: 18 91% 55%; /* Darker orange for hover state */
 
     --secondary: 174 70% 55%; /* Electric teal #4ECDC4 */
     --secondary-foreground: 0 0% 100%;
@@ -49,6 +50,7 @@
 
     --primary: 18 91% 61%;
     --primary-foreground: 0 0% 100%;
+    --primary-dark: 18 91% 55%;
 
     --secondary: 174 70% 55%;
     --secondary-foreground: 0 0% 100%;

@@ -7,6 +7,7 @@ import { JokeCard } from '@/components/JokeCard'
 import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
 import { useAuth } from '@/contexts/AuthContext'
 import { Link } from 'react-router-dom'
+import { Shuffle } from 'lucide-react'
 
 export function HomePage() {
   const { user } = useAuth()
@@ -184,12 +185,19 @@ export function HomePage() {
                   <p className="text-content-muted">
                     Zaloguj się, aby dodawać dowcipy
                   </p>
-                  <div className="flex gap-3 justify-center">
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Link to="/logowanie" className="btn-outline">
                       Zaloguj się
                     </Link>
                     <Link to="/rejestracja" className="btn-primary">
                       Załóż konto
+                    </Link>
+                    <Link
+                      to="/losuj"
+                      className="group relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:scale-105"
+                    >
+                      <Shuffle className="h-5 w-5 animate-pulse" />
+                      <span>Losuj dowcip 🎲</span>
                     </Link>
                   </div>
                 </div>
@@ -203,23 +211,38 @@ export function HomePage() {
             </div>
           )}
 
-          {/* Load More Button */}
-          {hasMore && jokes.length > 0 && (
-            <div className="mt-8 text-center">
-              <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="btn-primary"
+          {/* Action Buttons */}
+          {jokes.length > 0 && (
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+              {/* Random Joke Button */}
+              <Link
+                to="/losuj"
+                className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:scale-105"
               >
-                {loadingMore ? (
-                  <>
-                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Ładowanie...
-                  </>
-                ) : (
-                  'Wczytaj więcej dowcipów'
-                )}
-              </button>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-orange-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-3">
+                  <Shuffle className="h-6 w-6 animate-pulse" />
+                  <span className="text-lg">Losuj Dowcip 🎲</span>
+                </div>
+              </Link>
+
+              {/* Load More Button */}
+              {hasMore && (
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="btn-primary"
+                >
+                  {loadingMore ? (
+                    <>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Ładowanie...
+                    </>
+                  ) : (
+                    'Wczytaj więcej dowcipów'
+                  )}
+                </button>
+              )}
             </div>
           )}
 

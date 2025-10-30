@@ -149,14 +149,17 @@ export function RandomJokePage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
                       onClick={fetchRandomJoke}
                       disabled={loading}
-                      className="btn-primary flex items-center gap-3 text-lg px-8 py-4"
+                      className="group relative inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:scale-105 text-lg"
                     >
-                      <Shuffle className="h-5 w-5" />
-                      Losuj kolejny
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-orange-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="relative flex items-center gap-3">
+                        <Shuffle className="h-7 w-7 animate-spin" />
+                        <span>Losuj kolejny 🎲</span>
+                      </div>
                     </button>
                     <button
                       onClick={() => randomJoke && handleSpeak(randomJoke.content)}

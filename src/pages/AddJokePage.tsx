@@ -146,7 +146,7 @@ export function AddJokePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition disabled:opacity-50 font-medium"
+                className="btn-primary flex-1 disabled:opacity-50"
               >
                 {loading ? 'Dodawanie...' : 'Dodaj dowcip'}
               </button>
