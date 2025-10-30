@@ -12,6 +12,7 @@ import { FavoritesPage } from './pages/FavoritesPage'
 import { AdminPage } from './pages/AdminPage'
 import { JokeDetailPage } from './pages/JokeDetailPage'
 import { CategoryPage } from './pages/CategoryPage'
+import { RandomJokePage } from './pages/RandomJokePage'
 import SearchPage from './pages/SearchPage'
 import { TermsOfService } from './components/TermsOfService'
 import { PrivacyPolicy } from './components/PrivacyPolicy'
@@ -33,6 +34,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/wyszukiwarka" element={<SearchPage />} />
+              <Route path="/losuj" element={<RandomJokePage />} />
               <Route path="/logowanie" element={<LoginPage />} />
               <Route path="/rejestracja" element={<RegisterPage />} />
               <Route path="/dodaj" element={<AddJokePage />} />

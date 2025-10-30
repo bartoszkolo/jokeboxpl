@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { LogOut, User, Plus, Crown } from 'lucide-react'
+import { LogOut, User, Plus, Crown, Shuffle } from 'lucide-react'
 import { SearchBar } from './SearchBar'
 
 export function Navbar() {
@@ -17,6 +17,10 @@ export function Navbar() {
             <div className="hidden lg:flex items-center space-x-4">
               <Link to="/" className="ui-text hover:text-primary px-3 py-2 rounded-md transition-colors duration-200">
                 Wszystkie
+              </Link>
+              <Link to="/losuj" className="ui-text hover:text-primary px-3 py-2 rounded-md transition-colors duration-200 flex items-center space-x-1">
+                <Shuffle className="h-4 w-4" />
+                <span>Losuj</span>
               </Link>
               <Link to="/ranking" className="ui-text hover:text-primary px-3 py-2 rounded-md transition-colors duration-200">
                 Ranking

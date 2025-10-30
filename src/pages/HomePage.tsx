@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase'
 import { fetchJokesWithDetails } from '@/lib/jokesHelper'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
-import { RandomJoke } from '@/components/RandomJoke'
 import { useAuth } from '@/contexts/AuthContext'
 import { Link } from 'react-router-dom'
 
@@ -120,9 +119,6 @@ export function HomePage() {
             Odkryj najlepsze polskie dowcipy, głosuj na swoje ulubione i dodawaj własne żarty
           </p>
         </div>
-
-        {/* Random Joke & Daily Joke Section */}
-        <RandomJoke />
 
         {/* Main Content Layout */}
         <div className="flex flex-col lg:flex-row gap-8">
