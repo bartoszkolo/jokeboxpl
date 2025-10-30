@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async'
+import { createTextExcerpt } from '@/lib/formatText'
 
 interface SEOProps {
   title?: string
@@ -90,8 +91,8 @@ export const createJokeStructuredData = (joke: {
 }) => ({
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: `Dowcip: ${joke.content.substring(0, 100)}...`,
-  description: joke.content.substring(0, 160),
+  headline: `Dowcip: ${createTextExcerpt(joke.content, 100)}`,
+  description: createTextExcerpt(joke.content, 160),
   author: {
     '@type': 'Person',
     name: joke.author.username

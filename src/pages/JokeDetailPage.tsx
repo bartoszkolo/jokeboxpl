@@ -6,6 +6,7 @@ import { fetchJokesWithDetails } from '@/lib/jokesHelper'
 import { JokeWithAuthor } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
 import { SEO, createJokeStructuredData, createBreadcrumbStructuredData } from '@/components/SEO'
+import { createTextExcerpt } from '@/lib/formatText'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function JokeDetailPage() {
@@ -90,8 +91,8 @@ export function JokeDetailPage() {
     <>
       {joke && (
         <SEO
-          title={`Dowcip: ${joke.content.substring(0, 80)}...`}
-          description={`${joke.content.substring(0, 160)}${joke.content.length > 160 ? '...' : ''} - dodany przez ${joke.author.username}`}
+          title={`Dowcip: ${createTextExcerpt(joke.content, 80)}`}
+          description={`${createTextExcerpt(joke.content, 160)} - dodany przez ${joke.author.username}`}
           canonical={`/dowcip/${joke.slug}`}
           ogType="article"
           structuredData={[

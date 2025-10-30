@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share'
 import { Link } from 'react-router-dom'
+import { formatTextContent, createTextExcerpt, sanitizeText } from '@/lib/formatText'
 
 interface JokeCardProps {
   joke: JokeWithAuthor
@@ -23,7 +24,7 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
   const [animatingDownvotes, setAnimatingDownvotes] = useState(joke.downvotes)
   
   const shareUrl = `${window.location.origin}/dowcip/${joke.slug}`
-  const shareTitle = joke.content.substring(0, 100)
+  const shareTitle = createTextExcerpt(joke.content, 100)
 
   const handleVote = async (voteValue: number) => {
     if (!user || isVoting) return
@@ -188,9 +189,12 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
       </div>
 
       <Link to={`/dowcip/${joke.slug}`}>
-        <p className="joke-content mb-6 hover:text-content-muted transition-colors duration-200">
-          {joke.content}
-        </p>
+        <div
+          className="joke-content mb-6 hover:text-content-muted transition-colors duration-200 text-content leading-relaxed"
+          dangerouslySetInnerHTML={{
+            __html: formatTextContent(sanitizeText(joke.content))
+          }}
+        />
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
