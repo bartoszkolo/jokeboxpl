@@ -17,6 +17,10 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
   const [isVoting, setIsVoting] = useState(false)
   const [isFavorite, setIsFavorite] = useState(joke.isFavorite || false)
   const [showShare, setShowShare] = useState(false)
+  const [scoreAnimation, setScoreAnimation] = useState<'up' | 'down' | null>(null)
+  const [animatingScore, setAnimatingScore] = useState(joke.score)
+  const [animatingUpvotes, setAnimatingUpvotes] = useState(joke.upvotes)
+  const [animatingDownvotes, setAnimatingDownvotes] = useState(joke.downvotes)
   
   const shareUrl = `${window.location.origin}/dowcip/${joke.slug}`
   const shareTitle = joke.content.substring(0, 100)
@@ -34,15 +38,33 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
         .eq('joke_id', joke.id)
         .single()
 
+      let newScore = joke.score
+      let newUpvotes = joke.upvotes
+      let newDownvotes = joke.downvotes
+
       if (existingVote) {
         if (existingVote.vote_value === voteValue) {
           // Remove vote
+          newScore = joke.score - voteValue
+          if (voteValue === 1) {
+            newUpvotes = joke.upvotes - 1
+          } else {
+            newDownvotes = joke.downvotes - 1
+          }
           await supabase
             .from('votes')
             .delete()
             .eq('id', existingVote.id)
         } else {
-          // Update vote
+          // Update vote (switch from up to down or vice versa)
+          newScore = joke.score + (voteValue * 2) // Remove old vote and add new one
+          if (voteValue === 1) {
+            newUpvotes = joke.upvotes + 1
+            newDownvotes = joke.downvotes - 1
+          } else {
+            newUpvotes = joke.upvotes - 1
+            newDownvotes = joke.downvotes + 1
+          }
           await supabase
             .from('votes')
             .update({ vote_value: voteValue })
@@ -50,10 +72,27 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
         }
       } else {
         // Add new vote
+        newScore = joke.score + voteValue
+        if (voteValue === 1) {
+          newUpvotes = joke.upvotes + 1
+        } else {
+          newDownvotes = joke.downvotes + 1
+        }
         await supabase
           .from('votes')
           .insert({ user_id: user.id, joke_id: joke.id, vote_value: voteValue })
       }
+
+      // Trigger animations
+      setScoreAnimation(voteValue === 1 ? 'up' : 'down')
+      setAnimatingScore(newScore)
+      setAnimatingUpvotes(newUpvotes)
+      setAnimatingDownvotes(newDownvotes)
+
+      // Reset animation after it completes
+      setTimeout(() => {
+        setScoreAnimation(null)
+      }, 600)
 
       onVoteChange?.()
     } catch (error) {
@@ -73,12 +112,22 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
           .delete()
           .eq('user_id', user.id)
           .eq('joke_id', joke.id)
-        setIsFavorite(false)
       } else {
         await supabase
           .from('favorites')
           .insert({ user_id: user.id, joke_id: joke.id })
-        setIsFavorite(true)
+      }
+
+      // Toggle state for animation
+      setIsFavorite(!isFavorite)
+
+      // Add a small animation class to the heart
+      const heartElement = document.getElementById(`heart-${joke.id}`)
+      if (heartElement) {
+        heartElement.classList.add('animate-pulse', 'scale-125')
+        setTimeout(() => {
+          heartElement.classList.remove('animate-pulse', 'scale-125')
+        }, 400)
       }
     } catch (error) {
       console.error('Error toggling favorite:', error)
@@ -134,7 +183,11 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
             } disabled:opacity-50`}
           >
             <ThumbsUp className="h-4 w-4" />
-            <span className="text-sm font-medium">{joke.upvotes}</span>
+            <span className={`text-sm font-medium transition-all duration-300 ${
+              scoreAnimation === 'up' ? 'animate-pulse text-secondary scale-125' : ''
+            }`}>
+              {animatingUpvotes}
+            </span>
           </button>
 
           <button
@@ -145,16 +198,22 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
             } disabled:opacity-50`}
           >
             <ThumbsDown className="h-4 w-4" />
-            <span className="text-sm font-medium">{joke.downvotes}</span>
+            <span className={`text-sm font-medium transition-all duration-300 ${
+              scoreAnimation === 'down' ? 'animate-pulse text-destructive scale-125' : ''
+            }`}>
+              {animatingDownvotes}
+            </span>
           </button>
 
           {/* Score Display */}
-          <div className="px-3 py-1 bg-muted rounded-lg">
-            <span className={`text-sm font-bold ${
-              joke.score > 0 ? 'text-secondary' :
-              joke.score < 0 ? 'text-destructive' : 'text-foreground'
+          <div className="px-3 py-1 bg-muted rounded-lg transition-all duration-300">
+            <span className={`text-sm font-bold transition-all duration-300 ${
+              scoreAnimation === 'up' ? 'animate-pulse text-secondary scale-125' :
+              scoreAnimation === 'down' ? 'animate-pulse text-destructive scale-125' :
+              animatingScore > 0 ? 'text-secondary' :
+              animatingScore < 0 ? 'text-destructive' : 'text-foreground'
             }`}>
-              {joke.score > 0 ? '+' : ''}{joke.score}
+              {animatingScore > 0 ? '+' : ''}{animatingScore}
             </span>
           </div>
         </div>
@@ -163,6 +222,7 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
           {user && (
             <button
               onClick={handleFavorite}
+              id={`heart-${joke.id}`}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                 isFavorite
                   ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
@@ -170,7 +230,10 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
               }`}
               title="Dodaj do ulubionych"
             >
-              <Heart size={16} className={isFavorite ? 'fill-current' : ''} />
+              <Heart
+                size={16}
+                className={`transition-all duration-300 ${isFavorite ? 'fill-current' : ''}`}
+              />
               <span className="text-sm">Ulubione</span>
             </button>
           )}

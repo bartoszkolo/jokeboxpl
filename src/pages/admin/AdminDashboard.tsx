@@ -12,6 +12,7 @@ import {
   XCircle,
   BarChart3
 } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 
 interface DashboardStats {
   totalJokes: number
@@ -22,6 +23,8 @@ interface DashboardStats {
   totalCategories: number
   totalVotes: number
   recentActivity: any[]
+  categoryData: any[]
+  weeklyData: any[]
 }
 
 export const AdminDashboard: React.FC = () => {
@@ -87,6 +90,50 @@ export const AdminDashboard: React.FC = () => {
         })) || [])
       ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5)
 
+      // Get category data for bar chart
+      const { data: categoryData } = await supabase
+        .from('jokes')
+        .select(`
+          categories!inner(name)
+        `)
+        .eq('status', 'published')
+
+      const categoryCounts = categoryData?.reduce((acc: any, joke: any) => {
+        const categoryName = joke.categories.name
+        acc[categoryName] = (acc[categoryName] || 0) + 1
+        return acc
+      }, {}) || {}
+
+      const categoryChartData = Object.entries(categoryCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8) // Top 8 categories
+
+      // Get last 7 days data for line chart
+      const today = new Date()
+      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+      const { data: weeklyData } = await supabase
+        .from('jokes')
+        .select('created_at')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: true })
+
+      const dailyCounts = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(sevenDaysAgo.getTime() + i * 24 * 60 * 60 * 1000)
+        const dateStr = date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' })
+
+        const count = weeklyData?.filter(joke => {
+          const jokeDate = new Date(joke.created_at)
+          return jokeDate.toDateString() === date.toDateString()
+        }).length || 0
+
+        return {
+          date: dateStr,
+          count: count
+        }
+      })
+
       setStats({
         totalJokes: jokesCountResult.count || 0,
         pendingJokes: pendingCountResult.count || 0,
@@ -95,7 +142,9 @@ export const AdminDashboard: React.FC = () => {
         totalUsers: usersCountResult.count || 0,
         totalCategories: categoriesCountResult.count || 0,
         totalVotes: votesCountResult.count || 0,
-        recentActivity
+        recentActivity,
+        categoryData: categoryChartData,
+        weeklyData: dailyCounts
       })
     } catch (error) {
       console.error('Error fetching dashboard stats:', error)
@@ -197,6 +246,65 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )
         })}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart - Jokes by Category */}
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Dowcipy według Kategorii</h3>
+          {stats.categoryData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={stats.categoryData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar
+                  dataKey="count"
+                  fill="#FF6B35"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              Brak danych o kategoriach
+            </div>
+          )}
+        </div>
+
+        {/* Line Chart - New Jokes Over 7 Days */}
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Nowe Dowcipy (Ostatnie 7 dni)</h3>
+          {stats.weeklyData.some(d => d.count > 0) ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={stats.weeklyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#FF6B35"
+                  strokeWidth={3}
+                  dot={{ fill: '#FF6B35', r: 6 }}
+                  activeDot={{ r: 8 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              Brak nowych dowcipów w ostatnich 7 dniach
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick Actions */}
