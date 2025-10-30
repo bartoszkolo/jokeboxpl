@@ -18,6 +18,21 @@ export function RandomJokePage() {
   const fetchRandomJoke = async () => {
     setLoading(true)
     try {
+      // First get the total count of published jokes
+      const { count } = await supabase
+        .from('jokes')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'published')
+
+      if (!count || count === 0) {
+        setRandomJoke(null)
+        return
+      }
+
+      // Generate a random offset
+      const randomOffset = Math.floor(Math.random() * count)
+
+      // Fetch one joke with random offset
       const { data } = await supabase
         .from('jokes')
         .select(`
@@ -26,12 +41,12 @@ export function RandomJokePage() {
           category:categories(name, slug)
         `)
         .eq('status', 'published')
-        .limit(1)
-        .order('RANDOM()')
+        .range(randomOffset, randomOffset)
 
       setRandomJoke(data?.[0] || null)
     } catch (error) {
       console.error('Error fetching random joke:', error)
+      setRandomJoke(null)
     } finally {
       setLoading(false)
     }
