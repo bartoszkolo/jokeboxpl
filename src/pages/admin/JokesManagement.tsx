@@ -207,6 +207,13 @@ export const JokesManagement: React.FC = () => {
 
   const addNewJoke = async () => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        alert('Musisz być zalogowany aby dodać dowcip')
+        return
+      }
+
       // Generate slug
       const slug = newJokeContent
         .toLowerCase()
@@ -217,7 +224,8 @@ export const JokesManagement: React.FC = () => {
         content: newJokeContent,
         category_id: newJokeCategory ? parseInt(newJokeCategory) : null,
         status: newJokeStatus,
-        slug
+        slug,
+        author_id: user.id
       })
 
       setNewJokeContent('')
@@ -227,6 +235,7 @@ export const JokesManagement: React.FC = () => {
       fetchJokes()
     } catch (error) {
       console.error('Error adding joke:', error)
+      alert('Wystąpił błąd podczas dodawania dowcipu. Spróbuj ponownie.')
     }
   }
 
