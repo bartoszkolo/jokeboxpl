@@ -15,6 +15,11 @@ export const AdminLayout: React.FC = () => {
   const location = useLocation()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
+  // Debug: log state changes
+  React.useEffect(() => {
+    console.log('Sidebar collapsed state:', isCollapsed)
+  }, [isCollapsed])
+
   const menuItems = [
     {
       title: 'Panel Główny',
@@ -59,14 +64,23 @@ export const AdminLayout: React.FC = () => {
               <h1 className="text-xl font-bold text-accent-foreground font-ui">Panel Administratora</h1>
             </div>
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent-foreground transition-all duration-200"
+              onClick={() => {
+                console.log('Toggle clicked, current state:', isCollapsed)
+                setIsCollapsed(!isCollapsed)
+              }}
+              className="flex items-center justify-center px-4 py-2 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent-foreground transition-all duration-200 border border-accent/20 hover:border-accent/30"
               title={isCollapsed ? "Rozwiń panel boczny" : "Zwiń panel boczny"}
             >
               {isCollapsed ? (
-                <Menu className="h-5 w-5" />
+                <>
+                  <Menu className="h-5 w-5 mr-2" />
+                  <span className="text-sm font-medium">Rozwiń</span>
+                </>
               ) : (
-                <X className="h-5 w-5" />
+                <>
+                  <X className="h-5 w-5 mr-2" />
+                  <span className="text-sm font-medium">Zwiń</span>
+                </>
               )}
             </button>
           </div>
