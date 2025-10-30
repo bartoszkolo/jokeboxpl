@@ -72,22 +72,46 @@ export function RankingPage() {
     }
   }
 
+  const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
+    if (voteData) {
+      // Update just the specific joke that was voted on with animation
+      setJokes(prevJokes =>
+        prevJokes.map(joke => {
+          if (joke.id === jokeId) {
+            return {
+              ...joke,
+              upvotes: voteData.upvotes ?? joke.upvotes,
+              downvotes: voteData.downvotes ?? joke.downvotes,
+              score: voteData.score ?? joke.score,
+              userVote: voteData.userVote ?? joke.userVote
+            }
+          }
+          return joke
+        })
+      )
+    } else {
+      // Fallback to full refresh if no vote data provided
+      fetchTopJokes()
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-muted/30">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
             <Trophy className="text-yellow-500" size={36} />
-            <h1 className="text-4xl font-bold text-gray-900">
+            <h1 className="text-4xl font-bold text-gradient heading">
               Ranking Dowcipów
             </h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-content-muted subheading">
             Najlepiej oceniane dowcipy w serwisie
           </p>
         </div>
 
-        <div className="mb-6 flex space-x-2">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-8">
+          <div className="mb-6 flex space-x-2">
           <button
             onClick={() => setTimeRange('all')}
             className={`px-4 py-2 rounded-md transition ${
@@ -145,11 +169,12 @@ export function RankingPage() {
                     {index + 1}
                   </div>
                 </div>
-                <JokeCard joke={joke} onVoteChange={fetchTopJokes} />
+                <JokeCard joke={joke} onVoteChange={handleVoteChange} />
               </div>
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   )
