@@ -30,7 +30,7 @@ export const RandomJoke: React.FC = () => {
       // Generate a random offset
       const randomOffset = Math.floor(Math.random() * count)
 
-      // Fetch one joke with random offset
+      // Fetch one joke with random offset using correct syntax
       const { data } = await supabase
         .from('jokes')
         .select(`
@@ -39,7 +39,7 @@ export const RandomJoke: React.FC = () => {
           category:categories(name, slug)
         `)
         .eq('status', 'published')
-        .range(randomOffset, randomOffset)
+        .range(randomOffset, randomOffset + 1)
 
       setRandomJoke(data?.[0] || null)
     } catch (error) {
