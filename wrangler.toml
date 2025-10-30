@@ -3,3 +3,7 @@ compatibility_date = "2025-10-30"
 
 [assets]
 directory = "./dist"
+
+[[routes]]
+pattern = "/*"
+zone_name = "jokebox.pl"
