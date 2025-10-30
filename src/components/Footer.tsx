@@ -1,50 +1,20 @@
 // @ts-nocheck
 import { Link } from 'react-router-dom'
 import { Facebook, Twitter, Instagram, Mail } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { useEffect, useState } from 'react'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
-  const [categories, setCategories] = useState([])
-
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  const fetchCategories = async () => {
-    const { data } = await supabase
-      .from('categories')
-      .select('name, slug')
-      .order('name')
-    
-    if (data) setCategories(data)
-  }
 
   return (
     <footer className="bg-gray-900 text-gray-300 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* O nas */}
           <div>
             <h3 className="text-white text-lg font-bold mb-4">Jokebox</h3>
             <p className="text-sm text-gray-400">
               Najlepsza platforma z polskimi dowcipami. Czytaj, dodawaj i głosuj na swoje ulubione żarty!
             </p>
-          </div>
-
-          {/* Kategorie */}
-          <div>
-            <h3 className="text-white text-lg font-bold mb-4">Kategorie</h3>
-            <ul className="space-y-2">
-              {categories.map((category) => (
-                <li key={category.slug}>
-                  <Link to={`/kategoria/${category.slug}`} className="text-sm hover:text-white transition">
-                    {category.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Nawigacja */}
