@@ -92,7 +92,7 @@ export function JokeDetailPage() {
       {joke && (
         <SEO
           title={`Dowcip: ${createTextExcerpt(joke.content, 80)}`}
-          description={`${createTextExcerpt(joke.content, 160)} - dodany przez ${joke.author.username}`}
+          description={`${createTextExcerpt(joke.content, 160)} - dodany przez ${joke.profiles?.username || 'Anonim'}`}
           canonical={`/dowcip/${joke.slug}`}
           ogType="article"
           structuredData={[

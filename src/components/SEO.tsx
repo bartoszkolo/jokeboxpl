@@ -83,11 +83,11 @@ export const createJokeStructuredData = (joke: {
   id: number
   slug: string
   content: string
-  author: { username: string }
+  profiles?: { username: string } | null
   created_at: string
   upvotes?: number
   downvotes?: number
-  category?: { name: string }
+  categories?: { name: string } | null
 }) => ({
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -95,7 +95,7 @@ export const createJokeStructuredData = (joke: {
   description: createTextExcerpt(joke.content, 160),
   author: {
     '@type': 'Person',
-    name: joke.author.username
+    name: joke.profiles?.username || 'Anonim'
   },
   datePublished: joke.created_at,
   dateModified: joke.created_at,
@@ -121,9 +121,9 @@ export const createJokeStructuredData = (joke: {
       userInteractionCount: joke.downvotes || 0
     }
   ],
-  about: joke.category ? {
+  about: joke.categories ? {
     '@type': 'Thing',
-    name: joke.category.name
+    name: joke.categories.name
   } : undefined
 })
 
