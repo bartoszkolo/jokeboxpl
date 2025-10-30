@@ -149,14 +149,14 @@ export function HomePage() {
         ])}
       />
       <div className="min-h-screen bg-muted/30">
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-12">
   
         {/* Main Content Layout */}
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content Area */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Jokes Content */}
-            <div className="bg-card rounded-xl shadow-sm border border-border p-8">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6 lg:p-8 xl:p-10">
           {loading ? (
             <div className="text-center py-16">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -255,8 +255,8 @@ export function HomePage() {
           </div>
 
           {/* Right Sidebar - Categories */}
-          <div className="lg:w-64">
-            <div className="bg-card rounded-xl shadow-sm border border-border p-6 sticky top-24">
+          <div className="lg:w-56 xl:w-60 flex-shrink-0">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-5 lg:p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-foreground mb-4 heading">Kategorie</h2>
               <div className="space-y-2">
                 <button
