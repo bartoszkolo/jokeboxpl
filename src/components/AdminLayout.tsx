@@ -57,7 +57,7 @@ export const AdminLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-accent to-accent-dark border-b border-accent-dark shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Crown className="h-8 w-8 text-accent-foreground mr-3" />
@@ -87,14 +87,14 @@ export const AdminLayout: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className={`grid gap-6 transition-all duration-300 ${
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className={`grid gap-6 transition-all duration-300 h-full ${
           isCollapsed
-            ? 'grid-cols-1 md:grid-cols-12'
-            : 'grid-cols-1 md:grid-cols-4'
+            ? 'grid-cols-12'
+            : 'grid-cols-12'
         }`}>
           {/* Sidebar */}
-          <div className={`${isCollapsed ? 'md:col-span-1' : 'md:col-span-1'} transition-all duration-300`}>
+          <div className={`${isCollapsed ? 'col-span-1' : 'col-span-2'} transition-all duration-300`}>
             <nav className="space-y-2">
               {menuItems.map((item) => {
                 const Icon = item.icon
@@ -132,10 +132,10 @@ export const AdminLayout: React.FC = () => {
           {/* Main Content */}
           <div className={`${
             isCollapsed
-              ? 'md:col-span-11'
-              : 'md:col-span-3'
+              ? 'col-span-11'
+              : 'col-span-10'
           } transition-all duration-300`}>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">
               <Outlet />
             </div>
           </div>
