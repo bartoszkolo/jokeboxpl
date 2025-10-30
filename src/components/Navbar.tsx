@@ -13,9 +13,8 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-4">
           <div className="flex items-center space-x-4 md:space-x-8">
-            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
-              <img src="/jokebox_logo.png" alt="Jokebox" className="h-8 w-8" />
-              <span className="text-2xl font-bold text-white">Jokebox</span>
+            <Link to="/" className="flex items-center flex-shrink-0">
+              <img src="/jokebox_logo.png" alt="Jokebox" className="h-14 w-auto" />
             </Link>
             <div className="hidden lg:flex items-center space-x-4">
               <Link to="/losuj" className="text-white hover:bg-orange-700 px-3 py-2 rounded-md transition-colors duration-200 flex items-center space-x-1">
