@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { LogOut, User, Plus, Crown, Shuffle, ChevronDown, Settings } from 'lucide-react'
 import { SearchBar } from './SearchBar'
+import { SettingsToggle } from './SettingsToggle'
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth()
@@ -105,14 +106,18 @@ export function Navbar() {
                   />
                 )}
               </div>
+              <SettingsToggle />
               </>
             ) : (
-              <Link
-                to="/logowanie"
-                className="btn-primary"
-              >
-                Zaloguj się
-              </Link>
+              <>
+                <Link
+                  to="/logowanie"
+                  className="btn-primary"
+                >
+                  Zaloguj się
+                </Link>
+                <SettingsToggle />
+              </>
             )}
           </div>
         </div>

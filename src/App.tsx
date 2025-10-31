@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from './contexts/AuthContext'
+import { SettingsProvider } from './contexts/SettingsContext'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
 import { SEO, createWebsiteStructuredData } from './components/SEO'
@@ -33,7 +34,8 @@ function App() {
     <HelmetProvider>
       <BrowserRouter>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50 flex flex-col">
+          <SettingsProvider>
+          <div className="min-h-screen bg-background text-foreground transition-safe flex flex-col">
             <SEO
               structuredData={createWebsiteStructuredData()}
             />
@@ -68,6 +70,7 @@ function App() {
           </main>
           <Footer />
         </div>
+      </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>
     </HelmetProvider>

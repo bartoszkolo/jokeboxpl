@@ -56,7 +56,7 @@
     --secondary-foreground: 0 0% 100%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 75%;
 
     --accent: 38 95% 57%;
     --accent-foreground: 222.2 84% 4.9%;
@@ -84,7 +84,7 @@
 
   /* Typography for different content types */
   .joke-content {
-    @apply font-content text-lg leading-relaxed text-content;
+    @apply font-content text-lg leading-relaxed text-foreground;
     line-height: 1.7;
   }
 
@@ -93,7 +93,7 @@
   }
 
   .meta-text {
-    @apply font-ui text-sm text-content-light;
+    @apply font-ui text-sm text-muted-foreground;
   }
 
   .heading {
@@ -101,7 +101,7 @@
   }
 
   .subheading {
-    @apply font-ui font-medium text-content-muted;
+    @apply font-ui font-medium text-muted-foreground;
   }
 }
 
@@ -161,6 +161,15 @@
   .search-field {
     @apply input-field pl-12;
   }
+
+  /* Dark mode specific improvements */
+  .dark .input-field {
+    @apply border-gray-600;
+  }
+
+  .dark .input-field:focus {
+    @apply border-primary ring-primary/20;
+  }
 }
 
 @layer utilities {
@@ -175,6 +184,145 @@
   .bg-gradient-secondary {
     @apply bg-gradient-to-r from-secondary to-secondary-dark;
   }
+
+  /* Transition duration for reduced motion */
+  .transition-safe {
+    transition-duration: var(--transition-duration, 200ms);
+  }
+}
+
+/* Font size classes for accessibility */
+html.text-normal {
+  font-size: 16px;
+}
+
+html.text-large {
+  font-size: 20px; /* 125% of normal */
+}
+
+html.text-extra-large {
+  font-size: 24px; /* 150% of normal */
+}
+
+/* High contrast mode */
+html.high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --border: 0 0% 0%;
+  --input: 0 0% 0%;
+  --muted: 0 0% 95%;
+  --muted-foreground: 0 0% 20%;
+}
+
+html.high-contrast.dark {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
+  --border: 0 0% 100%;
+  --input: 0 0% 100%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 90%;
+}
+
+/* Enhanced contrast for borders and interactive elements */
+html.high-contrast button,
+html.high-contrast input,
+html.high-contrast select,
+html.high-contrast textarea {
+  border-width: 2px !important;
+}
+
+html.high-contrast .btn-primary,
+html.high-contrast .btn-secondary,
+html.high-contrast .btn-accent,
+html.high-contrast .btn-outline {
+  border-width: 3px !important;
+}
+
+/* Focus indicators for better accessibility */
+html.high-contrast *:focus,
+html.high-contrast *:focus-visible {
+  outline: 3px solid currentColor !important;
+  outline-offset: 2px !important;
+}
+
+/* Text contrast improvements */
+html.high-contrast {
+  --primary: 18 100% 50% !important;
+  --secondary: 174 100% 50% !important;
+  --accent: 38 100% 50% !important;
+  --destructive: 0 100% 50% !important;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom root variable for transition duration */
+:root {
+  --transition-duration: 200ms;
+}
+
+/* Additional dark mode improvements for readability */
+.dark {
+  /* Ensure better contrast for all text elements */
+  color-scheme: dark;
+}
+
+.dark .text-gray-900 {
+  @apply text-gray-100;
+}
+
+.dark .text-gray-800 {
+  @apply text-gray-200;
+}
+
+.dark .text-gray-700 {
+  @apply text-gray-300;
+}
+
+.dark .text-gray-600 {
+  @apply text-gray-400;
+}
+
+.dark .text-gray-500 {
+  color: rgb(229 231 235); /* gray-200 */
+}
+
+.dark .bg-white {
+  @apply bg-gray-800;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-900;
+}
+
+.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+
+.dark .border-gray-300 {
+  @apply border-gray-600;
+}
+
+/* Better contrast for interactive elements */
+.dark button:not(.btn-primary):not(.btn-secondary):not(.btn-accent) {
+  @apply text-gray-100 hover:text-white hover:bg-gray-700;
+}
+
+.dark select, .dark textarea {
+  @apply text-gray-100 bg-gray-800 border-gray-600;
 }
 
 * {

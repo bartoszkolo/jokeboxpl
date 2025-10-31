@@ -95,30 +95,30 @@ export function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 transition-safe">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
             <Heart className="text-red-500" size={36} fill="currentColor" />
-            <h1 className="text-4xl font-bold text-gradient heading">
+            <h1 className="text-4xl font-bold text-gradient heading transition-safe">
               Twoje ulubione dowcipy
             </h1>
           </div>
-          <p className="text-content-muted subheading">
+          <p className="text-muted-foreground subheading transition-safe">
             Dowcipy, które oznaczyłeś jako ulubione
           </p>
         </div>
 
-        <div className="bg-card rounded-xl shadow-sm border border-border p-8">
+        <div className="bg-card text-card-foreground rounded-xl shadow-sm border border-border p-8 transition-safe">
           {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Ładowanie ulubionych...</p>
+            <p className="mt-4 text-muted-foreground transition-safe">Ładowanie ulubionych...</p>
           </div>
         ) : jokes.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <Heart className="mx-auto mb-4 text-gray-300" size={64} />
-            <p className="text-gray-600 text-lg mb-4">
+          <div className="text-center py-12 bg-card text-card-foreground rounded-lg shadow transition-safe">
+            <Heart className="mx-auto mb-4 text-muted-foreground" size={64} />
+            <p className="text-muted-foreground text-lg mb-4 transition-safe">
               Nie masz jeszcze żadnych ulubionych dowcipów
             </p>
             <button

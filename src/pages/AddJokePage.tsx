@@ -156,13 +156,13 @@ export function AddJokePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 transition-safe">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="bg-card text-card-foreground rounded-lg shadow-md p-8 transition-safe">
+          <h2 className="text-3xl font-bold text-foreground mb-2 transition-safe">
             Dodaj nowy dowcip
           </h2>
-          <p className="text-gray-600 mb-8">
+          <p className="text-muted-foreground mb-8 transition-safe">
             Podziel się swoim humorem z innymi. Dowcip zostanie sprawdzony przez moderatora przed publikacją.
           </p>
 

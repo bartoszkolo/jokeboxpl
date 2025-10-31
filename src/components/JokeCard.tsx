@@ -181,7 +181,7 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
         </div>
         <button
           onClick={handleSpeak}
-          className="text-content-light hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-primary/5"
+          className="text-muted-foreground hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-primary/5"
           title="Przeczytaj na głos"
         >
           <Volume2 size={18} />
@@ -190,7 +190,7 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
 
       <Link to={`/dowcip/${joke.slug}`}>
         <div
-          className="joke-content mb-6 hover:text-content-muted transition-colors duration-200 text-content leading-relaxed"
+          className="joke-content mb-6 hover:text-muted-foreground transition-colors duration-200 text-foreground leading-relaxed"
           style={{ whiteSpace: 'pre-wrap' }}
         >
           {sanitizeText(joke.content)}
@@ -251,7 +251,7 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
               className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                 isFavorite
                   ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
-                  : 'text-content-muted hover:text-destructive hover:bg-destructive/5'
+                  : 'text-muted-foreground hover:text-destructive hover:bg-destructive/5'
               }`}
               title="Dodaj do ulubionych"
             >
@@ -266,7 +266,7 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
           <div className="relative">
             <button
               onClick={() => setShowShare(!showShare)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-content-muted hover:text-primary hover:bg-primary/5 transition-all duration-200"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
               title="Udostępnij"
             >
               <Share2 size={16} />
