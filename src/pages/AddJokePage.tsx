@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Category } from '@/types/database'
+import { MathCaptcha } from '@/components/MathCaptcha'
 
 export function AddJokePage() {
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ export function AddJokePage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [captchaVerified, setCaptchaVerified] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -40,6 +42,12 @@ export function AddJokePage() {
 
     if (content.trim().length < 10) {
       setError('Dowcip musi mieć minimum 10 znaków')
+      setLoading(false)
+      return
+    }
+
+    if (!captchaVerified) {
+      setError('Proszę rozwiązać captchę')
       setLoading(false)
       return
     }
@@ -140,6 +148,13 @@ export function AddJokePage() {
               <p className="mt-2 text-sm text-gray-500">
                 {content.length} / minimum 10 znaków
               </p>
+            </div>
+
+            <div>
+              <MathCaptcha
+                onVerify={(isValid) => setCaptchaVerified(isValid)}
+                onReset={() => setError('')}
+              />
             </div>
 
             <div className="flex space-x-4">
