@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Category } from '@/types/database'
 import { MathCaptcha } from '@/components/MathCaptcha'
+import { comprehensiveDuplicateCheck } from '@/lib/duplicateChecker'
 
 export function AddJokePage() {
   const navigate = useNavigate()
@@ -16,6 +17,12 @@ export function AddJokePage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [captchaVerified, setCaptchaVerified] = useState(false)
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    isDuplicate: boolean
+    reason?: string
+    similarJoke?: { content: string; id: number; similarity: number }
+  } | null>(null)
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -33,6 +40,53 @@ export function AddJokePage() {
     if (data) setCategories(data)
   }
 
+  const checkForDuplicates = async (jokeContent: string) => {
+    if (jokeContent.trim().length < 10) {
+      setDuplicateWarning(null)
+      return
+    }
+
+    setCheckingDuplicates(true)
+    try {
+      // Pobierz istniejące dowcipy z bazy
+      const { data: existingJokes, error } = await supabase
+        .from('jokes')
+        .select('id, content')
+        .in('status', ['published', 'pending']) // Sprawdzaj zarówno opublikowane jak i oczekujące
+
+      if (error) {
+        console.error('Error fetching jokes for duplicate check:', error)
+        return
+      }
+
+      const duplicateResult = await comprehensiveDuplicateCheck(jokeContent, existingJokes || [], {
+        similarityThreshold: 85, // Bardzo ścisłe sprawdzanie
+        checkFragments: true,
+        fragmentLength: 20,
+        fragmentThreshold: 90
+      })
+
+      setDuplicateWarning(duplicateResult.isDuplicate ? duplicateResult : null)
+    } catch (err) {
+      console.error('Error checking duplicates:', err)
+    } finally {
+      setCheckingDuplicates(false)
+    }
+  }
+
+  // Funkcja do sprawdzania duplikatów z opóźnieniem (debounce)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (content.trim().length >= 10) {
+        checkForDuplicates(content)
+      } else {
+        setDuplicateWarning(null)
+      }
+    }, 1000) // 1 sekunda opóźnienia
+
+    return () => clearTimeout(timer)
+  }, [content])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
@@ -48,6 +102,12 @@ export function AddJokePage() {
 
     if (!captchaVerified) {
       setError('Proszę rozwiązać captchę')
+      setLoading(false)
+      return
+    }
+
+    if (duplicateWarning?.isDuplicate) {
+      setError('Twój dowcip jest zbyt podobny do już istniejącego. Spróbuj go zmodyfikować.')
       setLoading(false)
       return
     }
@@ -149,6 +209,52 @@ export function AddJokePage() {
                 {content.length} / minimum 10 znaków
               </p>
             </div>
+
+            {/* Ostrzeżenie o duplikacie */}
+            {duplicateWarning && duplicateWarning.isDuplicate && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-yellow-800 mb-1">
+                      Ostrzeżenie o możliwym duplikacie
+                    </h3>
+                    <p className="text-sm text-yellow-700 mb-2">
+                      {duplicateWarning.reason}
+                    </p>
+                    {duplicateWarning.similarJoke && (
+                      <div className="mt-2 p-2 bg-yellow-100 rounded border border-yellow-300">
+                        <p className="text-xs text-yellow-600 mb-1">
+                          Podobny dowcip ({duplicateWarning.similarJoke.similarity}% podobieństwa):
+                        </p>
+                        <p className="text-sm text-yellow-800 italic">
+                          "{duplicateWarning.similarJoke.content.length > 100
+                            ? duplicateWarning.similarJoke.content.substring(0, 100) + '...'
+                            : duplicateWarning.similarJoke.content}"
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-xs text-yellow-600 mt-2">
+                      Możesz spróbować zmodyfikować dowcip, aby był bardziej unikalny.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Wskaźnik sprawdzania duplikatów */}
+            {checkingDuplicates && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="text-sm text-blue-700">Sprawdzanie możliwych duplikatów...</span>
+                </div>
+              </div>
+            )}
 
             <div>
               <MathCaptcha
