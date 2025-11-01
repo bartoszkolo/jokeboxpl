@@ -9,6 +9,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [newsletterConsent, setNewsletterConsent] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -31,7 +32,7 @@ export function RegisterPage() {
     }
 
     try {
-      await signUp(email, password, username)
+      await signUp(email, password, username, newsletterConsent)
       setSuccess(true)
       setTimeout(() => {
         navigate('/logowanie')
@@ -136,6 +137,27 @@ export function RegisterPage() {
                 placeholder="Hasło"
               />
             </div>
+          </div>
+
+          {/* Newsletter Consent */}
+          <div className="bg-muted/30 rounded-lg p-4">
+            <label className="flex items-start space-x-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                id="newsletterConsent"
+                checked={newsletterConsent}
+                onChange={(e) => setNewsletterConsent(e.target.checked)}
+                className="mt-1 h-4 w-4 text-primary border-border rounded focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer"
+              />
+              <div className="flex-1">
+                <span className="text-sm text-foreground leading-relaxed">
+                  Wyrażam zgodę na otrzymywanie newslettera z informacjami o nowych dowcipach i aktualizacjach serwisu.
+                </span>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Możesz zrezygnować w każdej chwili. Szanujemy Twoją prywatność.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div>

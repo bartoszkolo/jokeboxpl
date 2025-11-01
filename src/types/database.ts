@@ -14,18 +14,21 @@ export interface Database {
           id: string
           username: string
           is_admin: boolean
+          newsletter_consent: boolean
           created_at: string
         }
         Insert: {
           id: string
           username: string
           is_admin?: boolean
+          newsletter_consent?: boolean
           created_at?: string
         }
         Update: {
           id?: string
           username?: string
           is_admin?: boolean
+          newsletter_consent?: boolean
           created_at?: string
         }
       }
