@@ -40,15 +40,6 @@ export function Navbar() {
           <div className="flex items-center space-x-2 md:space-x-4">
             {user ? (
               <>
-                {profile?.is_admin && (
-                  <Link
-                    to="/admin"
-                    className="flex items-center space-x-1 bg-orange-800 text-white px-4 py-2 rounded-lg hover:bg-orange-900 transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    <Crown size={18} />
-                    <span>Admin</span>
-                  </Link>
-                )}
                 <Link
                   to="/dodaj"
                   className="btn-primary flex items-center space-x-1"
@@ -84,6 +75,17 @@ export function Navbar() {
                         {profile?.is_admin ? 'Administrator' : 'Użytkownik'}
                       </p>
                     </div>
+
+                    {profile?.is_admin && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center space-x-3 w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200"
+                      >
+                        <Crown size={16} className="text-orange-600" />
+                        <span className="text-sm text-gray-700 hover:text-gray-900">Panel Admina</span>
+                      </Link>
+                    )}
 
                     <button
                       onClick={() => {
