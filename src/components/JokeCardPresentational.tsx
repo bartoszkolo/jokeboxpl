@@ -124,24 +124,22 @@ export function JokeCardPresentational({
         </div>
 
         <div className="flex items-center gap-2">
-          {user && (
-            <button
-              onClick={onFavorite}
-              id={`heart-${joke.id}`}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 transform ${
-                isFavorite
-                  ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50 scale-105'
-                  : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 hover:scale-105'
-              }`}
-              title="Dodaj do ulubionych"
-            >
-              <Heart
-                size={16}
-                className={`transition-all duration-300 ${isFavorite ? 'fill-current' : ''}`}
-              />
-              <span className="text-sm font-medium">Ulubione</span>
-            </button>
-          )}
+          <button
+            onClick={onFavorite}
+            id={`heart-${joke.id}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 transform ${
+              isFavorite
+                ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50 scale-105'
+                : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 hover:scale-105'
+            } ${!user ? 'opacity-60 hover:opacity-80' : ''}`}
+            title={!user ? "Zaloguj się, aby dodać do ulubionych" : "Dodaj do ulubionych"}
+          >
+            <Heart
+              size={16}
+              className={`transition-all duration-300 ${isFavorite ? 'fill-current' : ''}`}
+            />
+            <span className="text-sm font-medium">Ulubione</span>
+          </button>
 
           <div className="relative">
             <button
@@ -186,7 +184,7 @@ export function JokeCardPresentational({
       <LoginPrompt
         isOpen={showLoginPrompt}
         onClose={onLoginPromptClose || (() => {})}
-        message="Aby oddać głos na dowcip, musisz być zalogowany. Zaloguj się lub załóż konto, aby móc oceniać dowcipy!"
+        message="Aby korzystać z tej funkcji, musisz być zalogowany. Zaloguj się lub załóż konto, aby oceniać dowcipy i dodawać je do ulubionych!"
       />
     </article>
   )

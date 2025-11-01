@@ -172,9 +172,13 @@ export function useJokeFavorite(joke: JokeWithAuthor) {
   const favoriteMutation = useFavoriteMutation()
 
   const [isFavorite, setIsFavorite] = useState(joke.isFavorite || false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   const handleFavorite = useCallback(async () => {
-    if (!user) return
+    if (!user) {
+      setShowLoginPrompt(true)
+      return
+    }
 
     try {
       // Optimistic update
@@ -208,7 +212,9 @@ export function useJokeFavorite(joke: JokeWithAuthor) {
 
   return {
     isFavorite,
-    handleFavorite
+    handleFavorite,
+    showLoginPrompt,
+    setShowLoginPrompt
   }
 }
 

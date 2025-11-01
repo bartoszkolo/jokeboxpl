@@ -30,7 +30,7 @@ export function JokeCardSmart({ joke, onVoteChange }: JokeCardSmartProps) {
       isVoting={vote.isVoting}
       isFavorite={favorite.isFavorite}
       showShare={share.showShare}
-      showLoginPrompt={vote.showLoginPrompt}
+      showLoginPrompt={vote.showLoginPrompt || favorite.showLoginPrompt}
       scoreAnimation={vote.scoreAnimation}
       animatingScore={vote.animatingScore}
       animatingUpvotes={vote.animatingUpvotes}
@@ -43,7 +43,10 @@ export function JokeCardSmart({ joke, onVoteChange }: JokeCardSmartProps) {
       onFavorite={favorite.handleFavorite}
       onShare={share.toggleShare}
       onTextToSpeech={textToSpeech.speak}
-      onLoginPromptClose={() => vote.setShowLoginPrompt(false)}
+      onLoginPromptClose={() => {
+        vote.setShowLoginPrompt(false)
+        favorite.setShowLoginPrompt(false)
+      }}
     />
   )
 }
