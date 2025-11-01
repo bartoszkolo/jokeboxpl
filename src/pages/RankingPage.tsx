@@ -1,98 +1,113 @@
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { fetchJokesWithDetails } from '@/lib/jokesHelper'
+import { useState } from 'react'
+import { useJokes, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
 import { useAuth } from '@/contexts/AuthContext'
 import { Trophy } from 'lucide-react'
 
+type TimeRange = 'all' | 'week' | 'month'
+
 export function RankingPage() {
   const { user } = useAuth()
-  const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState<'all' | 'week' | 'month'>('all')
+  const [timeRange, setTimeRange] = useState<TimeRange>('all')
 
-  useEffect(() => {
-    fetchTopJokes()
-  }, [timeRange, user])
+  // Fetch top jokes sorted by score
+  const {
+    data: jokesData,
+    isLoading: loading,
+    error,
+    refetch
+  } = useJokes({
+    page: 0,
+    categoryId: null,
+    limit: 50,
+    orderBy: 'score',
+    ascending: false
+  })
 
-  const fetchTopJokes = async () => {
-    setLoading(true)
-    try {
-      const jokesData = await fetchJokesWithDetails({
-        status: 'published',
-        orderBy: 'score',
-        ascending: false,
-        limit: 50
+  // Fetch user votes and favorites for the jokes
+  const jokeIds = jokesData?.jokes?.map(j => j.id) || []
+  const { data: userVotes = [] } = useUserVotes(user?.id || '', jokeIds)
+  const { data: userFavorites = [] } = useUserFavorites(user?.id || '', jokeIds)
+
+  // Mutations for voting and favoriting
+  const voteMutation = useVoteMutation()
+  const favoriteMutation = useFavoriteMutation()
+
+  // Filter jokes by time range
+  const getFilteredJokes = (jokes: JokeWithAuthor[]) => {
+    if (timeRange === 'all') return jokes
+
+    const now = new Date()
+    let cutoffDate: Date
+
+    if (timeRange === 'week') {
+      cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    } else if (timeRange === 'month') {
+      cutoffDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+    } else {
+      return jokes
+    }
+
+    return jokes.filter(joke => new Date(joke.created_at) >= cutoffDate)
+  }
+
+  // Process jokes with user-specific data and time filtering
+  const baseJokes = jokesData?.jokes || []
+  const filteredJokes = getFilteredJokes(baseJokes)
+  const jokes = filteredJokes.map(joke => ({
+    ...joke,
+    userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
+    isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
+  }))
+
+  const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
+    if (user && voteData?.userVote?.vote_type) {
+      voteMutation.mutate({
+        jokeId,
+        userId: user.id,
+        voteType: voteData.userVote.vote_type
       })
-
-      // Filter by time range if needed
-      let filteredJokes = jokesData
-      if (timeRange === 'week') {
-        const weekAgo = new Date()
-        weekAgo.setDate(weekAgo.getDate() - 7)
-        filteredJokes = jokesData.filter(j => new Date(j.created_at) >= weekAgo)
-      } else if (timeRange === 'month') {
-        const monthAgo = new Date()
-        monthAgo.setMonth(monthAgo.getMonth() - 1)
-        filteredJokes = jokesData.filter(j => new Date(j.created_at) >= monthAgo)
-      }
-
-      if (filteredJokes && user) {
-        const jokeIds = filteredJokes.map(j => j.id)
-        
-        const [{ data: votesData }, { data: favoritesData }] = await Promise.all([
-          supabase
-            .from('votes')
-            .select('*')
-            .eq('user_id', user.id)
-            .in('joke_id', jokeIds),
-          supabase
-            .from('favorites')
-            .select('*')
-            .eq('user_id', user.id)
-            .in('joke_id', jokeIds)
-        ])
-
-        const jokesWithUserData = filteredJokes.map(joke => ({
-          ...joke,
-          userVote: votesData?.find(v => v.joke_id === joke.id) || null,
-          isFavorite: favoritesData?.some(f => f.joke_id === joke.id) || false
-        }))
-
-        setJokes(jokesWithUserData)
-      } else if (filteredJokes) {
-        setJokes(filteredJokes)
-      }
-    } catch (error) {
-      console.error('Error fetching top jokes:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
-  const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
-    if (voteData) {
-      // Update just the specific joke that was voted on with animation
-      setJokes(prevJokes =>
-        prevJokes.map(joke => {
-          if (joke.id === jokeId) {
-            return {
-              ...joke,
-              upvotes: voteData.upvotes ?? joke.upvotes,
-              downvotes: voteData.downvotes ?? joke.downvotes,
-              score: voteData.score ?? joke.score,
-              userVote: voteData.userVote ?? joke.userVote
-            }
-          }
-          return joke
-        })
-      )
-    } else {
-      // Fallback to full refresh if no vote data provided
-      fetchTopJokes()
+  const handleFavoriteToggle = (jokeId: number) => {
+    if (user) {
+      favoriteMutation.mutate({
+        jokeId,
+        userId: user.id
+      })
     }
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          <div className="text-center py-16">
+            <div className="mb-6">
+              <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-4xl">❌</span>
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2 heading">
+                Wystąpił błąd
+              </h3>
+              <p className="text-content-muted mb-6">
+                Nie udało się załadować rankingu. Spróbuj odświeżyć stronę.
+              </p>
+              <button
+                onClick={() => refetch()}
+                className="btn-primary"
+              >
+                Odśwież
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -114,30 +129,30 @@ export function RankingPage() {
           <div className="mb-6 flex space-x-2">
           <button
             onClick={() => setTimeRange('all')}
-            className={`px-4 py-2 rounded-md transition ${
+            className={`px-4 py-2 rounded-lg transition ${
               timeRange === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-foreground hover:bg-primary hover:text-primary-foreground border border-border'
             }`}
           >
             Wszystkie czasy
           </button>
           <button
             onClick={() => setTimeRange('month')}
-            className={`px-4 py-2 rounded-md transition ${
+            className={`px-4 py-2 rounded-lg transition ${
               timeRange === 'month'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-foreground hover:bg-primary hover:text-primary-foreground border border-border'
             }`}
           >
             Ostatni miesiąc
           </button>
           <button
             onClick={() => setTimeRange('week')}
-            className={`px-4 py-2 rounded-md transition ${
+            className={`px-4 py-2 rounded-lg transition ${
               timeRange === 'week'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-foreground hover:bg-primary hover:text-primary-foreground border border-border'
             }`}
           >
             Ostatni tydzień
@@ -146,25 +161,33 @@ export function RankingPage() {
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Ładowanie rankingu...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="mt-4 text-content-muted subheading">Ładowanie rankingu...</p>
           </div>
         ) : jokes.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-600 text-lg">
-              Brak dowcipów w tym okresie
-            </p>
+          <div className="text-center py-12">
+            <div className="mb-6">
+              <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-4xl">📊</span>
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2 heading">
+                Brak dowcipów w tym okresie
+              </h3>
+              <p className="text-content-muted">
+                Spróbuj wybrać inny zakres czasowy
+              </p>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             {jokes.map((joke, index) => (
               <div key={joke.id} className="relative">
                 <div className="absolute left-0 top-0 -ml-12 mt-6">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-md ${
                     index === 0 ? 'bg-yellow-400 text-yellow-900' :
                     index === 1 ? 'bg-gray-300 text-gray-800' :
                     index === 2 ? 'bg-orange-400 text-orange-900' :
-                    'bg-gray-100 text-gray-600'
+                    'bg-muted text-muted-foreground'
                   }`}>
                     {index + 1}
                   </div>
