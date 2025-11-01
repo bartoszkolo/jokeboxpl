@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, X } from 'lucide-react'

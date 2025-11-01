@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useJokes, useCategories, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
