@@ -58,3 +58,35 @@ export async function fetchJokesWithDetails(options: FetchJokesOptions = {}): Pr
     categories: joke.category_name ? { name: joke.category_name, slug: joke.category_slug } : null
   })) || []
 }
+
+export async function fetchJokeBySlug(slug: string): Promise<JokeWithAuthor | null> {
+  if (!slug) return null
+
+  const { data, error } = await supabase
+    .from('jokes')
+    .select(`
+      id,
+      content,
+      created_at,
+      updated_at,
+      upvotes,
+      downvotes,
+      score,
+      status,
+      slug,
+      author_id,
+      category_id,
+      categories(name, slug),
+      profiles!inner(username)
+    `)
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single()
+
+  if (error) {
+    console.error('Error fetching joke by slug:', error)
+    return null
+  }
+
+  return data as JokeWithAuthor
+}

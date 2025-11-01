@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { fetchJokesWithDetails } from '@/lib/jokesHelper'
+import { fetchJokesWithDetails, fetchJokeBySlug } from '@/lib/jokesHelper'
 import { JokeWithAuthor, Database } from '@/types/database'
 
 // Query keys for React Query caching
@@ -103,12 +103,7 @@ export function useJokeBySlug(slug: string, enabled?: boolean) {
     queryFn: async () => {
       if (!slug) return null
 
-      const jokesData = await fetchJokesWithDetails({
-        status: 'published',
-        limit: 1000 // Fetch more to find by slug
-      })
-
-      const joke = jokesData.find(j => j.slug === slug)
+      const joke = await fetchJokeBySlug(slug)
       if (!joke) {
         throw new Error('Joke not found')
       }
