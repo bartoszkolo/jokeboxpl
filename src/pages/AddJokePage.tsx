@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Category } from '@/types/database'
-import { MathCaptcha } from '@/components/MathCaptcha'
+import { TurnstileCaptcha } from '@/components/TurnstileCaptcha'
 import { comprehensiveDuplicateCheck } from '@/lib/duplicateChecker'
 import { useCategories } from '@/hooks/useJokes'
 
@@ -16,7 +16,7 @@ export function AddJokePage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [captchaVerified, setCaptchaVerified] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<{
     isDuplicate: boolean
     reason?: string
@@ -87,8 +87,8 @@ export function AddJokePage() {
       return
     }
 
-    if (!captchaVerified) {
-      setError('Proszę rozwiązać captchę')
+    if (!turnstileToken) {
+      setError('Proszę ukończyć weryfikację antyspamową')
       setLoading(false)
       return
     }
@@ -100,6 +100,28 @@ export function AddJokePage() {
     }
 
     try {
+      // Verify Turnstile token on the server-side
+      const response = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: turnstileToken,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Weryfikacja antyspamowa nie powiodła się')
+      }
+
+      const { success } = await response.json()
+      if (!success) {
+        throw new Error('Weryfikacja antyspamowa nie powiodła się')
+      }
+
+      // If Turnstile verification passes, proceed with joke submission
       const { error: insertError } = await supabase
         .from('jokes')
         .insert({
@@ -261,9 +283,20 @@ export function AddJokePage() {
             )}
 
             <div>
-              <MathCaptcha
-                onVerify={(isValid) => setCaptchaVerified(isValid)}
-                onReset={() => setError('')}
+              <TurnstileCaptcha
+                onVerify={(token) => setTurnstileToken(token)}
+                onError={() => {
+                  setError('Weryfikacja antyspamowa nie powiodła się. Spróbuj ponownie.')
+                  setTurnstileToken(null)
+                }}
+                onExpire={() => {
+                  setError('Sesja weryfikacji wygasła. Spróbuj ponownie.')
+                  setTurnstileToken(null)
+                }}
+                onReset={() => {
+                  setError('')
+                  setTurnstileToken(null)
+                }}
               />
             </div>
 

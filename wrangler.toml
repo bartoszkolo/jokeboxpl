@@ -6,3 +6,8 @@ directory = "./dist"
 
 [[routes]]
 pattern = "jokebox.pl/*"
+
+# Environment variables for Turnstile
+[env.production.vars]
+# These will be set via Cloudflare dashboard or wrangler secret:
+# wrangler secret put TURNSTILE_SECRET_KEY --env production
