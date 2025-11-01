@@ -45,7 +45,7 @@ export function SettingsToggle() {
         title="Ustawienia dostępności i motywu"
       >
         <svg
-          className="w-6 h-6 text-gray-600 dark:text-gray-300"
+          className="w-6 h-6 text-white"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
