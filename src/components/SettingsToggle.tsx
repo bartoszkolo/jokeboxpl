@@ -40,7 +40,7 @@ export function SettingsToggle() {
       {/* Settings Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="p-2 rounded-lg hover:bg-orange-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
         aria-label="Ustawienia"
         title="Ustawienia dostępności i motywu"
       >
