@@ -5,6 +5,7 @@ import { fetchJokesWithDetails } from '@/lib/jokesHelper'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
 import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
+import { Pagination } from '@/components/Pagination'
 import { useAuth } from '@/contexts/AuthContext'
 import { Link } from 'react-router-dom'
 import { Shuffle } from 'lucide-react'
@@ -15,9 +16,9 @@ export function HomePage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
   const [currentPage, setCurrentPage] = useState(0)
+  const [totalJokes, setTotalJokes] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   const JOKES_PER_PAGE = 15
 
@@ -26,9 +27,12 @@ export function HomePage() {
     // Reset pagination when category changes
     setCurrentPage(0)
     setJokes([])
-    setHasMore(true)
-    fetchJokes(true)
+    fetchJokes()
   }, [selectedCategory, user])
+
+  useEffect(() => {
+    fetchJokes()
+  }, [currentPage])
 
   const fetchCategories = async () => {
     const { data } = await supabase
@@ -38,17 +42,28 @@ export function HomePage() {
     if (data) setCategories(data)
   }
 
-  const fetchJokes = async (reset = false) => {
-    if (reset) {
-      setLoading(true)
-    } else {
-      setLoadingMore(true)
-    }
+  const fetchJokes = async () => {
+    setLoading(true)
 
     try {
-      const page = reset ? 0 : currentPage
-      const offset = page * JOKES_PER_PAGE
+      const offset = currentPage * JOKES_PER_PAGE
 
+      // Fetch total count for pagination
+      let countQuery = supabase
+        .from('jokes')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'published')
+
+      if (selectedCategory) {
+        countQuery = countQuery.eq('category_id', selectedCategory)
+      }
+
+      const { count: totalCount } = await countQuery
+      const calculatedTotalPages = Math.ceil((totalCount || 0) / JOKES_PER_PAGE)
+      setTotalJokes(totalCount || 0)
+      setTotalPages(calculatedTotalPages)
+
+      // Fetch jokes for current page
       const jokesData = await fetchJokesWithDetails({
         status: 'published',
         categoryId: selectedCategory,
@@ -57,11 +72,6 @@ export function HomePage() {
         orderBy: 'created_at',
         ascending: false
       })
-
-      // Check if there are more jokes to load
-      if (jokesData.length < JOKES_PER_PAGE) {
-        setHasMore(false)
-      }
 
       let processedJokes = jokesData
 
@@ -89,16 +99,11 @@ export function HomePage() {
         }))
       }
 
-      if (reset) {
-        setJokes(processedJokes)
-      } else {
-        setJokes(prevJokes => [...prevJokes, ...processedJokes])
-      }
+      setJokes(processedJokes)
     } catch (error) {
       console.error('Error fetching jokes:', error)
     } finally {
       setLoading(false)
-      setLoadingMore(false)
     }
   }
 
@@ -121,15 +126,12 @@ export function HomePage() {
       )
     } else {
       // Fallback to full refresh if no vote data provided
-      fetchJokes(true)
+      fetchJokes()
     }
   }
 
-  const loadMore = () => {
-    if (!loadingMore && hasMore) {
-      setCurrentPage(prev => prev + 1)
-      fetchJokes(false)
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
   }
 
   const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
@@ -211,44 +213,25 @@ export function HomePage() {
             </div>
           )}
 
-          {/* Action Buttons */}
+          {/* Pagination */}
           {jokes.length > 0 && (
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
-              {/* Random Joke Button */}
-              <Link
-                to="/losuj"
-                className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 hover:scale-105"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-orange-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center gap-3">
-                  <Shuffle className="h-6 w-6 animate-pulse" />
-                  <span className="text-lg">Losuj Dowcip 🎲</span>
-                </div>
-              </Link>
-
-              {/* Load More Button */}
-              {hasMore && (
-                <button
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="btn-primary"
-                >
-                  {loadingMore ? (
-                    <>
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Ładowanie...
-                    </>
-                  ) : (
-                    'Wczytaj więcej dowcipów'
-                  )}
-                </button>
-              )}
+            <div className="mt-8 flex justify-center items-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                loading={loading}
+              />
             </div>
           )}
 
-          {!hasMore && jokes.length > 0 && (
-            <div className="mt-8 text-center text-content-muted">
-              <p className="subheading">To już wszystkie dowcipy w tej kategorii!</p>
+          {/* Jokes count info */}
+          {totalJokes > 0 && (
+            <div className="mt-4 text-center text-muted-foreground">
+              <p className="text-sm">
+                Wyświetlono {(currentPage * JOKES_PER_PAGE) + 1}-{Math.min((currentPage + 1) * JOKES_PER_PAGE, totalJokes)} z {totalJokes} dowcipów
+                {selectedCategoryData && ` w kategorii ${selectedCategoryData.name}`}
+              </p>
             </div>
           )}
         </div>
