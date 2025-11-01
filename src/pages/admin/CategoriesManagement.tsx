@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
+import React, { useState } from 'react'
 import {
   Plus,
   Edit,
@@ -11,6 +10,11 @@ import {
   MessageSquare,
   AlertCircle
 } from 'lucide-react'
+import {
+  useAdminCategories,
+  useSaveCategoryMutation,
+  useDeleteCategoryMutation
+} from '@/hooks/useAdmin'
 
 interface Category {
   id: number
@@ -22,8 +26,6 @@ interface Category {
 }
 
 export const CategoriesManagement: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [addingCategory, setAddingCategory] = useState(false)
   const [formData, setFormData] = useState({
@@ -33,35 +35,12 @@ export const CategoriesManagement: React.FC = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  useEffect(() => {
-    fetchCategories()
-  }, [])
+  // React Query hooks
+  const { data: categories = [], isLoading: loading, error: categoriesError } = useAdminCategories()
 
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select(`
-          *,
-          jokes(count)
-        `)
-        .order('name')
-
-      if (error) throw error
-
-      const categoriesWithCount = (data || []).map(category => ({
-        ...category,
-        jokes_count: category.jokes?.[0]?.count || 0
-      }))
-
-      setCategories(categoriesWithCount)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-      setError('Nie udało się załadować kategorii')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Mutations
+  const saveCategoryMutation = useSaveCategoryMutation()
+  const deleteCategoryMutation = useDeleteCategoryMutation()
 
   const generateSlug = (name: string): string => {
     return name
@@ -106,49 +85,18 @@ export const CategoriesManagement: React.FC = () => {
     if (!validateForm()) return
 
     try {
-      const slug = generateSlug(formData.name)
-      const categoryData = {
-        name: formData.name.trim(),
-        slug,
-        description_seo: formData.description_seo.trim()
-      }
-
-      if (editingCategory) {
-        // Update existing category
-        const { error } = await supabase
-          .from('categories')
-          .update(categoryData)
-          .eq('id', editingCategory.id)
-
-        if (error) throw error
-
-        setCategories(categories.map(cat =>
-          cat.id === editingCategory.id
-            ? { ...cat, ...categoryData }
-            : cat
-        ))
-
-        setSuccess('Kategoria została zaktualizowana')
-      } else {
-        // Add new category
-        const { data, error } = await supabase
-          .from('categories')
-          .insert(categoryData)
-          .select()
-          .single()
-
-        if (error) throw error
-
-        setCategories([...categories, { ...data, jokes_count: 0 }])
-        setSuccess('Kategoria została dodana')
-      }
+      await saveCategoryMutation.mutateAsync({
+        category: editingCategory,
+        name: formData.name,
+        descriptionSeo: formData.description_seo
+      })
 
       // Reset form
       setEditingCategory(null)
       setAddingCategory(false)
       setFormData({ name: '', description_seo: '' })
 
-      // Clear success message after 3 seconds
+      setSuccess(editingCategory ? 'Kategoria została zaktualizowana' : 'Kategoria została dodana')
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
       console.error('Error saving category:', error)
@@ -168,14 +116,7 @@ export const CategoriesManagement: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', category.id)
-
-      if (error) throw error
-
-      setCategories(categories.filter(cat => cat.id !== category.id))
+      await deleteCategoryMutation.mutateAsync(category.id)
       setSuccess('Kategoria została usunięta')
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
@@ -212,6 +153,19 @@ export const CategoriesManagement: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      </div>
+    )
+  }
+
+  if (categoriesError) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
+            <p className="text-red-800">Wystąpił błąd podczas ładowania kategorii. Spróbuj odświeżyć stronę.</p>
+          </div>
+        </div>
       </div>
     )
   }
@@ -308,9 +262,14 @@ export const CategoriesManagement: React.FC = () => {
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center px-4 py-2 bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500 transition-colors"
+              disabled={saveCategoryMutation.isPending}
+              className="flex items-center px-4 py-2 bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="h-4 w-4 mr-2" />
+              {saveCategoryMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               {editingCategory ? 'Zapisz Zmiany' : 'Dodaj Kategorię'}
             </button>
           </div>
@@ -395,6 +354,8 @@ export const CategoriesManagement: React.FC = () => {
                           className={`${
                             category.jokes_count && category.jokes_count > 0
                               ? 'text-gray-400 cursor-not-allowed'
+                              : deleteCategoryMutation.isPending
+                              ? 'text-gray-400 cursor-not-allowed'
                               : 'text-red-600 hover:text-red-900'
                           }`}
                           title={
@@ -402,9 +363,13 @@ export const CategoriesManagement: React.FC = () => {
                               ? 'Nie można usunąć - kategoria zawiera dowcipy'
                               : 'Usuń'
                           }
-                          disabled={category.jokes_count && category.jokes_count > 0}
+                          disabled={category.jokes_count && category.jokes_count > 0 || deleteCategoryMutation.isPending}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deleteCategoryMutation.isPending ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </td>

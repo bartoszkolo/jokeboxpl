@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import {
   MessageSquare,
@@ -18,8 +17,17 @@ import {
   ThumbsDown,
   Calendar,
   User,
-  Tag
+  Tag,
+  AlertCircle
 } from 'lucide-react'
+import {
+  useAdminJokes,
+  useAdminCategories,
+  useUpdateJokeStatusMutation,
+  useDeleteJokeMutation,
+  useEditJokeMutation,
+  useAddJokeMutation
+} from '@/hooks/useAdmin'
 
 interface Joke {
   id: number
@@ -52,11 +60,6 @@ export const JokesManagement: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
-  const [jokes, setJokes] = useState<Joke[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [totalCount, setTotalCount] = useState(0)
-
   // Filters and pagination
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all')
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || 'all')
@@ -75,13 +78,23 @@ export const JokesManagement: React.FC = () => {
   const [newJokeCategory, setNewJokeCategory] = useState('')
   const [newJokeStatus, setNewJokeStatus] = useState<'pending' | 'published'>('published')
 
-  useEffect(() => {
-    fetchCategories()
-  }, [])
+  // React Query hooks
+  const { data: jokesData, isLoading: loading, error: jokesError } = useAdminJokes({
+    status: statusFilter,
+    category: categoryFilter,
+    search: searchQuery,
+    sort: sortBy,
+    order: sortOrder,
+    page: currentPage
+  })
 
-  useEffect(() => {
-    fetchJokes()
-  }, [statusFilter, categoryFilter, authorFilter, sortBy, sortOrder, currentPage, searchQuery])
+  const { data: categories = [] } = useAdminCategories()
+
+  // Mutations
+  const updateJokeStatusMutation = useUpdateJokeStatusMutation()
+  const deleteJokeMutation = useDeleteJokeMutation()
+  const editJokeMutation = useEditJokeMutation()
+  const addJokeMutation = useAddJokeMutation()
 
   useEffect(() => {
     // Update URL params
@@ -96,75 +109,9 @@ export const JokesManagement: React.FC = () => {
     setSearchParams(params)
   }, [statusFilter, categoryFilter, authorFilter, sortBy, sortOrder, currentPage, searchQuery])
 
-  const fetchCategories = async () => {
-    try {
-      const { data } = await supabase
-        .from('categories')
-        .select('id, name, slug')
-        .order('name')
-      setCategories(data || [])
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-
-  const fetchJokes = async () => {
-    setLoading(true)
-    try {
-      // Simplified query first to avoid RLS issues with profiles join
-      let query = supabase
-        .from('jokes')
-        .select(`
-          *,
-          category:categories(name, slug)
-        `, { count: 'exact' })
-
-      // Apply filters
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter)
-      }
-      if (categoryFilter !== 'all') {
-        query = query.eq('category_id', parseInt(categoryFilter))
-      }
-      // Removed author filter due to RLS issues with profiles table
-      // if (authorFilter) {
-      //   query = query.eq('author.username', authorFilter)
-      // }
-      if (searchQuery) {
-        query = query.ilike('content', `%${searchQuery}%`)
-      }
-
-      // Apply sorting
-      query = query.order(sortBy, { ascending: sortOrder === 'asc' })
-
-      // Apply pagination
-      const from = (currentPage - 1) * JOKES_PER_PAGE
-      const to = from + JOKES_PER_PAGE - 1
-      query = query.range(from, to)
-
-      const { data, count, error } = await query
-
-      if (error) throw error
-
-      setJokes(data || [])
-      setTotalCount(count || 0)
-    } catch (error) {
-      console.error('Error fetching jokes:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const updateJokeStatus = async (jokeId: number, newStatus: 'published' | 'rejected') => {
     try {
-      await supabase
-        .from('jokes')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', jokeId)
-
-      setJokes(jokes.map(joke =>
-        joke.id === jokeId ? { ...joke, status: newStatus } : joke
-      ))
+      await updateJokeStatusMutation.mutateAsync({ jokeId, status: newStatus })
     } catch (error) {
       console.error('Error updating joke status:', error)
     }
@@ -176,8 +123,7 @@ export const JokesManagement: React.FC = () => {
     }
 
     try {
-      await supabase.from('jokes').delete().eq('id', jokeId)
-      setJokes(jokes.filter(joke => joke.id !== jokeId))
+      await deleteJokeMutation.mutateAsync(jokeId)
     } catch (error) {
       console.error('Error deleting joke:', error)
     }
@@ -187,19 +133,17 @@ export const JokesManagement: React.FC = () => {
     if (!editingJoke) return
 
     try {
-      await supabase
-        .from('jokes')
-        .update({
-          content: editingJoke.content,
-          category_id: editingJoke.category ?
-            categories.find(c => c.name === editingJoke.category.name)?.id : null,
-          status: editingJoke.status,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', editingJoke.id)
+      const categoryId = editingJoke.category ?
+        categories.find(c => c.name === editingJoke.category.name)?.id : null
+
+      await editJokeMutation.mutateAsync({
+        jokeId: editingJoke.id,
+        content: editingJoke.content,
+        categoryId: categoryId || null,
+        status: editingJoke.status
+      })
 
       setEditingJoke(null)
-      fetchJokes()
     } catch (error) {
       console.error('Error saving joke:', error)
     }
@@ -214,25 +158,17 @@ export const JokesManagement: React.FC = () => {
         return
       }
 
-      // Generate slug
-      const slug = newJokeContent
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '') + '-' + Date.now()
-
-      await supabase.from('jokes').insert({
+      await addJokeMutation.mutateAsync({
         content: newJokeContent,
-        category_id: newJokeCategory ? parseInt(newJokeCategory) : null,
+        categoryId: newJokeCategory ? parseInt(newJokeCategory) : null,
         status: newJokeStatus,
-        slug,
-        author_id: user.id
+        authorId: user.id
       })
 
       setNewJokeContent('')
       setNewJokeCategory('')
       setNewJokeStatus('published')
       setShowAddModal(false)
-      fetchJokes()
     } catch (error) {
       console.error('Error adding joke:', error)
       alert('Wystąpił błąd podczas dodawania dowcipu. Spróbuj ponownie.')
@@ -266,7 +202,22 @@ export const JokesManagement: React.FC = () => {
     }
   }
 
-  const totalPages = Math.ceil(totalCount / JOKES_PER_PAGE)
+  const jokes = jokesData?.jokes || []
+  const totalCount = jokesData?.totalCount || 0
+  const totalPages = jokesData?.totalPages || 0
+
+  if (jokesError) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
+            <p className="text-red-800">Wystąpił błąd podczas ładowania dowcipów. Spróbuj odświeżyć stronę.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -480,17 +431,27 @@ export const JokesManagement: React.FC = () => {
                           <>
                             <button
                               onClick={() => updateJokeStatus(joke.id, 'published')}
-                              className="text-green-600 hover:text-green-900"
+                              disabled={updateJokeStatusMutation.isPending}
+                              className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Zatwierdź"
                             >
-                              <CheckCircle className="h-4 w-4" />
+                              {updateJokeStatusMutation.isPending ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                              ) : (
+                                <CheckCircle className="h-4 w-4" />
+                              )}
                             </button>
                             <button
                               onClick={() => updateJokeStatus(joke.id, 'rejected')}
-                              className="text-red-600 hover:text-red-900"
+                              disabled={updateJokeStatusMutation.isPending}
+                              className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Odrzuć"
                             >
-                              <XCircle className="h-4 w-4" />
+                              {updateJokeStatusMutation.isPending ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                              ) : (
+                                <XCircle className="h-4 w-4" />
+                              )}
                             </button>
                           </>
                         )}
@@ -503,10 +464,15 @@ export const JokesManagement: React.FC = () => {
                         </button>
                         <button
                           onClick={() => deleteJoke(joke.id)}
-                          className="text-red-600 hover:text-red-900"
+                          disabled={deleteJokeMutation.isPending}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Usuń"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deleteJokeMutation.isPending ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </td>
@@ -615,8 +581,12 @@ export const JokesManagement: React.FC = () => {
               </button>
               <button
                 onClick={saveEditedJoke}
-                className="px-4 py-2 bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500"
+                disabled={editJokeMutation.isPending}
+                className="px-4 py-2 bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                {editJokeMutation.isPending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current inline-block mr-2"></div>
+                ) : null}
                 Zapisz
               </button>
             </div>
@@ -681,9 +651,12 @@ export const JokesManagement: React.FC = () => {
               </button>
               <button
                 onClick={addNewJoke}
-                disabled={!newJokeContent.trim()}
-                className="px-4 py-2 bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500 disabled:opacity-50"
+                disabled={!newJokeContent.trim() || addJokeMutation.isPending}
+                className="px-4 py-2 bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                {addJokeMutation.isPending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current inline-block mr-2"></div>
+                ) : null}
                 Dodaj
               </button>
             </div>

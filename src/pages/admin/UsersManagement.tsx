@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
+import React, { useState } from 'react'
 import {
   Users,
   Crown,
@@ -11,8 +10,13 @@ import {
   Shield,
   ShieldCheck,
   AlertTriangle,
+  AlertCircle,
   Trash2
 } from 'lucide-react'
+import {
+  useAdminUsers,
+  useToggleUserRoleMutation
+} from '@/hooks/useAdmin'
 
 interface UserProfile {
   id: string
@@ -26,72 +30,28 @@ interface UserProfile {
 const USERS_PER_PAGE = 10
 
 export const UsersManagement: React.FC = () => {
-  const [users, setUsers] = useState<UserProfile[]>([])
-  const [loading, setLoading] = useState(true)
-  const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all')
-  const [updatingRoles, setUpdatingRoles] = useState<Set<string>>(new Set())
   const [actionMessage, setActionMessage] = useState('')
 
-  useEffect(() => {
-    fetchUsers()
-  }, [currentPage, searchQuery, roleFilter])
+  // React Query hooks
+  const { data: usersData, isLoading: loading, error: usersError } = useAdminUsers({
+    search: searchQuery,
+    role: roleFilter,
+    page: currentPage
+  })
 
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      let query = supabase
-        .from('profiles')
-        .select('*', { count: 'exact' })
+  // Mutations
+  const toggleUserRoleMutation = useToggleUserRoleMutation()
 
-      // Apply filters
-      if (searchQuery) {
-        query = query.ilike('username', `%${searchQuery}%`)
-      }
-
-      if (roleFilter !== 'all') {
-        query = query.eq('is_admin', roleFilter === 'admin')
-      }
-
-      // Apply sorting and pagination
-      query = query
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE - 1)
-
-      const { data, count, error } = await query
-
-      if (error) throw error
-
-      const usersWithCounts = (data || []).map(user => ({
-        ...user,
-        jokes_count: 0 // Simplified - removed problematic join
-      }))
-
-      setUsers(usersWithCounts)
-      setTotalCount(count || 0)
-    } catch (error) {
-      console.error('Error fetching users:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const users = usersData?.users || []
+  const totalCount = usersData?.totalCount || 0
+  const totalPages = usersData?.totalPages || 0
 
   const toggleAdminRole = async (userId: string, currentRole: boolean) => {
-    setUpdatingRoles(prev => new Set(prev).add(userId))
-
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_admin: !currentRole })
-        .eq('id', userId)
-
-      if (error) throw error
-
-      setUsers(users.map(user =>
-        user.id === userId ? { ...user, is_admin: !currentRole } : user
-      ))
+      await toggleUserRoleMutation.mutateAsync({ userId, isAdmin: currentRole })
 
       setActionMessage(
         currentRole
@@ -104,12 +64,6 @@ export const UsersManagement: React.FC = () => {
       console.error('Error updating user role:', error)
       setActionMessage('Nie udało się zaktualizować roli użytkownika')
       setTimeout(() => setActionMessage(''), 3000)
-    } finally {
-      setUpdatingRoles(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(userId)
-        return newSet
-      })
     }
   }
 
@@ -130,12 +84,23 @@ export const UsersManagement: React.FC = () => {
     }
   }
 
-  const totalPages = Math.ceil(totalCount / USERS_PER_PAGE)
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      </div>
+    )
+  }
+
+  if (usersError) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
+            <p className="text-red-800">Wystąpił błąd podczas ładowania użytkowników. Spróbuj odświeżyć stronę.</p>
+          </div>
+        </div>
       </div>
     )
   }
@@ -301,14 +266,14 @@ export const UsersManagement: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => toggleAdminRole(user.id, user.is_admin)}
-                          disabled={updatingRoles.has(user.id)}
+                          disabled={toggleUserRoleMutation.isPending}
                           className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                             user.is_admin
                               ? 'bg-red-100 text-red-800 hover:bg-red-200'
                               : 'bg-green-100 text-green-800 hover:bg-green-200'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                          {updatingRoles.has(user.id) ? (
+                          {toggleUserRoleMutation.isPending ? (
                             <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></div>
                           ) : user.is_admin ? (
                             <Shield className="h-3 w-3 mr-1" />
