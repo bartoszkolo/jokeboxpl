@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
@@ -30,6 +30,7 @@ import { CategoriesManagement } from './pages/admin/CategoriesManagement'
 import { UsersManagement } from './pages/admin/UsersManagement'
 import { SafeJokesManagement } from './pages/admin/SafeJokesManagement'
 import { SafeUsersManagement } from './pages/admin/SafeUsersManagement'
+import { useEffect } from 'react'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,16 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+  return null
+}
 
 function App() {
   return (
@@ -53,6 +64,7 @@ function App() {
             />
             <Navbar />
             <main className="flex-grow">
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/wyszukiwarka" element={<SearchPage />} />
