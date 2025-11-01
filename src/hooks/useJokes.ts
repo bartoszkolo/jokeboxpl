@@ -210,51 +210,53 @@ export function useUserAllFavorites(userId: string, page: number = 0, limit: num
 
       const offset = page * limit
 
-      // Get total count
+      // Get total count of favorites for published jokes
       const { count: totalCount } = await supabase
         .from('favorites')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
 
-      // Get favorites with joke details
-      const { data: favorites, error } = await supabase
+      // Get just the joke IDs from favorites with pagination
+      const { data: favoriteIds, error: idsError } = await supabase
         .from('favorites')
-        .select(`
-          joke_id,
-          jokes!inner(
-            id,
-            content,
-            created_at,
-            upvotes,
-            downvotes,
-            score,
-            status,
-            categories(name, slug),
-            profiles!inner(username)
-          )
-        `)
+        .select('joke_id')
         .eq('user_id', userId)
-        .eq('jokes.status', 'published')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
 
-      if (error) throw error
+      if (idsError) throw idsError
 
-      const processedJokes = favorites?.map(fav => ({
-        id: fav.jokes.id,
-        content: fav.jokes.content,
-        created_at: fav.jokes.created_at,
-        upvotes: fav.jokes.upvotes,
-        downvotes: fav.jokes.downvotes,
-        score: fav.jokes.score,
-        status: fav.jokes.status,
-        profiles: fav.jokes.profiles,
-        categories: fav.jokes.categories,
-        isFavorite: true
-      })) || []
+      if (!favoriteIds || favoriteIds.length === 0) {
+        return {
+          jokes: [],
+          totalCount: totalCount || 0,
+          totalPages: Math.ceil((totalCount || 0) / limit)
+        }
+      }
+
+      // Get joke IDs for the query
+      const jokeIds = favoriteIds.map(fav => fav.joke_id)
+
+      // Get full joke details using the existing helper function
+      // Fetch more jokes to ensure we get all favorites
+      const jokesWithDetails = await fetchJokesWithDetails({
+        status: 'published',
+        limit: 1000, // Fetch more to ensure we get all favorites
+        offset: 0
+      })
+
+      // Filter to only include jokes that are in user's favorites and maintain order
+      const favoriteJokes = jokeIds
+        .filter(jokeId => jokeId !== undefined) // Filter out undefined IDs
+        .map(jokeId => jokesWithDetails.find(joke => joke.id === jokeId))
+        .filter(joke => joke !== undefined)
+        .map(joke => ({
+          ...joke,
+          isFavorite: true
+        }))
 
       return {
-        jokes: processedJokes,
+        jokes: favoriteJokes,
         totalCount: totalCount || 0,
         totalPages: Math.ceil((totalCount || 0) / limit)
       }
@@ -533,7 +535,7 @@ export function useFavoriteMutation() {
         .select('*')
         .eq('user_id', userId)
         .eq('joke_id', jokeId)
-        .single()
+        .maybeSingle()
 
       if (existingFavorite) {
         // Remove from favorites
@@ -604,6 +606,7 @@ export function useFavoriteMutation() {
       // Always refetch after error or success to make sure the server state is in sync
       queryClient.invalidateQueries({ queryKey: queryKeys.jokes })
       queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.userAllFavorites })
     }
   })
 }
