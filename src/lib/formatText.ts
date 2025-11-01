@@ -12,7 +12,7 @@ export function formatTextContent(text: string): string {
     // Convert triple+ newlines to proper spacing
     .replace(/\n{3,}/g, '<br /><br />')
     // Preserve multiple spaces
-    .replace(/  /g, ' &nbsp;')
+    .replace(/ {2}/g, ' &nbsp;')
 }
 
 /**

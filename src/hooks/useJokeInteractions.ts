@@ -3,6 +3,55 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useVoteMutation, useFavoriteMutation } from './useJokes'
 import { JokeWithAuthor } from '@/types/database'
 
+// Create heart particle explosion effect
+function createHeartParticles(element: HTMLElement) {
+  const rect = element.getBoundingClientRect()
+  const centerX = rect.left + rect.width / 2
+  const centerY = rect.top + rect.height / 2
+
+  // Create 8 heart particles in a circular pattern
+  const particleCount = 8
+  const particles = []
+
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div')
+    const angle = (i * 360) / particleCount
+    const distance = 40 + Math.random() * 20 // Random distance between 40-60px
+
+    particle.innerHTML = '❤️'
+    particle.style.position = 'fixed'
+    particle.style.left = `${centerX}px`
+    particle.style.top = `${centerY}px`
+    particle.style.fontSize = `${12 + Math.random() * 8}px` // Random size 12-20px
+    particle.style.pointerEvents = 'none'
+    particle.style.zIndex = '9999'
+    particle.style.opacity = '1'
+    particle.style.transform = 'translate(-50%, -50%)'
+    particle.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+
+    document.body.appendChild(particle)
+    particles.push(particle)
+
+    // Animate to final position
+    setTimeout(() => {
+      const finalX = Math.cos((angle * Math.PI) / 180) * distance
+      const finalY = Math.sin((angle * Math.PI) / 180) * distance
+
+      particle.style.transform = `translate(calc(-50% + ${finalX}px), calc(-50% + ${finalY}px)) scale(0.5)`
+      particle.style.opacity = '0'
+    }, 10)
+  }
+
+  // Clean up particles after animation
+  setTimeout(() => {
+    particles.forEach(particle => {
+      if (particle.parentNode) {
+        particle.parentNode.removeChild(particle)
+      }
+    })
+  }, 1000)
+}
+
 // Hook for handling joke voting with animations
 export function useJokeVote(joke: JokeWithAuthor, onVoteChange?: (jokeId: number, voteData?: any) => void) {
   const { user } = useAuth()
@@ -131,13 +180,17 @@ export function useJokeFavorite(joke: JokeWithAuthor) {
       // Optimistic update
       setIsFavorite(!isFavorite)
 
-      // Add heart animation
+      // Enhanced heart animation with particle effect
       const heartElement = document.getElementById(`heart-${joke.id}`)
       if (heartElement) {
-        heartElement.classList.add('animate-pulse', 'scale-125')
+        // Add scale and rotate animation to heart
+        heartElement.classList.add('animate-pulse', 'scale-125', 'rotate-12')
         setTimeout(() => {
-          heartElement.classList.remove('animate-pulse', 'scale-125')
-        }, 400)
+          heartElement.classList.remove('animate-pulse', 'scale-125', 'rotate-12')
+        }, 600)
+
+        // Create particle explosion effect
+        createHeartParticles(heartElement)
       }
 
       // Call the mutation

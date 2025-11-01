@@ -88,14 +88,14 @@ export function JokeCardPresentational({
           <button
             onClick={() => onVote?.('upvote')}
             disabled={isVoting}
-            className={`vote-btn upvote ${
-              userVoteValue === 1 ? 'active' : ''
-            } ${!user ? 'opacity-60 hover:opacity-80' : ''} disabled:opacity-50`}
+            className={`vote-btn upvote transition-transform duration-200 ${
+              userVoteValue === 1 ? 'active scale-105' : ''
+            } ${!user ? 'opacity-60 hover:opacity-80' : 'hover:scale-105'} disabled:opacity-50`}
             title={!user ? "Zaloguj się, aby zagłosować" : "Głosuj na plus"}
           >
             <ThumbsUp className="h-4 w-4" />
             <span className={`text-sm font-medium transition-all duration-300 ${
-              scoreAnimation === 'up' ? 'animate-pulse text-secondary scale-125' : ''
+              scoreAnimation === 'up' ? 'animate-bounce text-secondary scale-125' : ''
             }`}>
               {animatingUpvotes}
             </span>
@@ -104,14 +104,14 @@ export function JokeCardPresentational({
           <button
             onClick={() => onVote?.('downvote')}
             disabled={isVoting}
-            className={`vote-btn downvote ${
-              userVoteValue === -1 ? 'active' : ''
-            } ${!user ? 'opacity-60 hover:opacity-80' : ''} disabled:opacity-50`}
+            className={`vote-btn downvote transition-transform duration-200 ${
+              userVoteValue === -1 ? 'active scale-105' : ''
+            } ${!user ? 'opacity-60 hover:opacity-80' : 'hover:scale-105'} disabled:opacity-50`}
             title={!user ? "Zaloguj się, aby zagłosować" : "Głosuj na minus"}
           >
             <ThumbsDown className="h-4 w-4" />
             <span className={`text-sm font-medium transition-all duration-300 ${
-              scoreAnimation === 'down' ? 'animate-pulse text-destructive scale-125' : ''
+              scoreAnimation === 'down' ? 'animate-bounce text-destructive scale-125' : ''
             }`}>
               {animatingDownvotes}
             </span>
@@ -120,8 +120,8 @@ export function JokeCardPresentational({
           {/* Score Display */}
           <div className="px-3 py-1 bg-muted rounded-lg transition-all duration-300">
             <span className={`text-sm font-bold transition-all duration-300 ${
-              scoreAnimation === 'up' ? 'animate-pulse text-secondary scale-125' :
-              scoreAnimation === 'down' ? 'animate-pulse text-destructive scale-125' :
+              scoreAnimation === 'up' ? 'animate-bounce text-orange-500 scale-125' :
+              scoreAnimation === 'down' ? 'animate-bounce text-red-500 scale-125' :
               animatingScore > 0 ? 'text-secondary' :
               animatingScore < 0 ? 'text-destructive' : 'text-foreground'
             }`}>
@@ -135,10 +135,10 @@ export function JokeCardPresentational({
             <button
               onClick={onFavorite}
               id={`heart-${joke.id}`}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 transform ${
                 isFavorite
-                  ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
-                  : 'text-muted-foreground hover:text-destructive hover:bg-destructive/5'
+                  ? 'text-destructive bg-destructive/10 hover:bg-destructive/20 scale-105'
+                  : 'text-muted-foreground hover:text-destructive hover:bg-destructive/5 hover:scale-105'
               }`}
               title="Dodaj do ulubionych"
             >
