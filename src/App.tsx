@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { SettingsProvider } from './contexts/SettingsContext'
 import { Navbar } from './components/Navbar'
@@ -29,12 +30,22 @@ import { UsersManagement } from './pages/admin/UsersManagement'
 import { SafeJokesManagement } from './pages/admin/SafeJokesManagement'
 import { SafeUsersManagement } from './pages/admin/SafeUsersManagement'
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+})
+
 function App() {
   return (
     <HelmetProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <SettingsProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <SettingsProvider>
           <div className="min-h-screen bg-background text-foreground transition-safe flex flex-col">
             <SEO
               structuredData={createWebsiteStructuredData()}
@@ -73,6 +84,7 @@ function App() {
       </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>
+    </QueryClientProvider>
     </HelmetProvider>
   )
 }

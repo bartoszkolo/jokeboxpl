@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { fetchJokesWithDetails } from '@/lib/jokesHelper'
+import { useJokes, useCategories, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
 import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
@@ -12,121 +11,60 @@ import { Shuffle } from 'lucide-react'
 
 export function HomePage() {
   const { user } = useAuth()
-  const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
-  const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(0)
-  const [totalJokes, setTotalJokes] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
 
   const JOKES_PER_PAGE = 15
 
-  useEffect(() => {
-    fetchCategories()
-    // Reset pagination when category changes
-    setCurrentPage(0)
-    setJokes([])
-    fetchJokes()
-  }, [selectedCategory, user])
+  // Fetch categories
+  const { data: categories = [] } = useCategories()
 
-  useEffect(() => {
-    fetchJokes()
-  }, [currentPage])
+  // Fetch jokes with pagination and filtering
+  const {
+    data: jokesData,
+    isLoading: loading,
+    error,
+    refetch
+  } = useJokes({
+    page: currentPage,
+    categoryId: selectedCategory,
+    limit: JOKES_PER_PAGE,
+    orderBy: 'created_at'
+  })
 
-  const fetchCategories = async () => {
-    const { data } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name')
-    if (data) setCategories(data)
-  }
+  // Fetch user votes and favorites for the jokes
+  const jokeIds = jokesData?.jokes?.map(j => j.id) || []
+  const { data: userVotes = [] } = useUserVotes(user?.id || '', jokeIds)
+  const { data: userFavorites = [] } = useUserFavorites(user?.id || '', jokeIds)
 
-  const fetchJokes = async () => {
-    setLoading(true)
+  // Mutations for voting and favoriting
+  const voteMutation = useVoteMutation()
+  const favoriteMutation = useFavoriteMutation()
 
-    try {
-      const offset = currentPage * JOKES_PER_PAGE
+  // Process jokes with user-specific data
+  const jokes = jokesData?.jokes?.map(joke => ({
+    ...joke,
+    userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
+    isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
+  })) || []
 
-      // Fetch total count for pagination
-      let countQuery = supabase
-        .from('jokes')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'published')
-
-      if (selectedCategory) {
-        countQuery = countQuery.eq('category_id', selectedCategory)
-      }
-
-      const { count: totalCount } = await countQuery
-      const calculatedTotalPages = Math.ceil((totalCount || 0) / JOKES_PER_PAGE)
-      setTotalJokes(totalCount || 0)
-      setTotalPages(calculatedTotalPages)
-
-      // Fetch jokes for current page
-      const jokesData = await fetchJokesWithDetails({
-        status: 'published',
-        categoryId: selectedCategory,
-        limit: JOKES_PER_PAGE,
-        offset: offset,
-        orderBy: 'created_at',
-        ascending: false
+  const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
+    // React Query handles optimistic updates automatically, so we don't need to manually update state
+    if (user && voteData?.userVote?.vote_type) {
+      voteMutation.mutate({
+        jokeId,
+        userId: user.id,
+        voteType: voteData.userVote.vote_type
       })
-
-      let processedJokes = jokesData
-
-      if (jokesData && user) {
-        // Fetch user votes and favorites for the new jokes
-        const jokeIds = jokesData.map(j => j.id)
-
-        const [{ data: votesData }, { data: favoritesData }] = await Promise.all([
-          supabase
-            .from('votes')
-            .select('*')
-            .eq('user_id', user.id)
-            .in('joke_id', jokeIds),
-          supabase
-            .from('favorites')
-            .select('*')
-            .eq('user_id', user.id)
-            .in('joke_id', jokeIds)
-        ])
-
-        processedJokes = jokesData.map(joke => ({
-          ...joke,
-          userVote: votesData?.find(v => v.joke_id === joke.id) || null,
-          isFavorite: favoritesData?.some(f => f.joke_id === joke.id) || false
-        }))
-      }
-
-      setJokes(processedJokes)
-    } catch (error) {
-      console.error('Error fetching jokes:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
-  const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
-    if (voteData) {
-      // Update just the specific joke that was voted on with animation
-      setJokes(prevJokes =>
-        prevJokes.map(joke => {
-          if (joke.id === jokeId) {
-            return {
-              ...joke,
-              upvotes: voteData.upvotes ?? joke.upvotes,
-              downvotes: voteData.downvotes ?? joke.downvotes,
-              score: voteData.score ?? joke.score,
-              userVote: voteData.userVote ?? joke.userVote
-            }
-          }
-          return joke
-        })
-      )
-    } else {
-      // Fallback to full refresh if no vote data provided
-      fetchJokes()
+  const handleFavoriteToggle = (jokeId: number) => {
+    if (user) {
+      favoriteMutation.mutate({
+        jokeId,
+        userId: user.id
+      })
     }
   }
 
@@ -134,7 +72,43 @@ export function HomePage() {
     setCurrentPage(page)
   }
 
+  const handleCategoryChange = (categoryId: number | null) => {
+    setSelectedCategory(categoryId)
+    setCurrentPage(0) // Reset to first page when category changes
+  }
+
   const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
+  const totalJokes = jokesData?.totalCount || 0
+  const totalPages = jokesData?.totalPages || 0
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          <div className="text-center py-16">
+            <div className="mb-6">
+              <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-4xl">❌</span>
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2 heading">
+                Wystąpił błąd
+              </h3>
+              <p className="text-content-muted mb-6">
+                Nie udało się załadować dowcipów. Spróbuj odświeżyć stronę.
+              </p>
+              <button
+                onClick={() => refetch()}
+                className="btn-primary"
+              >
+                Odśwież
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -243,7 +217,7 @@ export function HomePage() {
               <h2 className="text-lg font-semibold text-foreground mb-4 heading">Kategorie</h2>
               <div className="space-y-2">
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => handleCategoryChange(null)}
                   className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
                     selectedCategory === null
                       ? 'bg-primary text-primary-foreground shadow-md'
@@ -255,7 +229,7 @@ export function HomePage() {
                 {categories.map(category => (
                   <button
                     key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
+                    onClick={() => handleCategoryChange(category.id)}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
                       selectedCategory === category.id
                         ? 'bg-primary text-primary-foreground shadow-md'

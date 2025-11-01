@@ -1,159 +1,132 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
-import { fetchJokesWithDetails } from '@/lib/jokesHelper'
+import { useJokes, useCategory, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
 import { SEO, createCategoryStructuredData, createBreadcrumbStructuredData } from '@/components/SEO'
+import { Pagination } from '@/components/Pagination'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
-  const [category, setCategory] = useState<Category | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
   const [currentPage, setCurrentPage] = useState(0)
 
   const JOKES_PER_PAGE = 15
 
-  useEffect(() => {
-    if (slug) {
-      fetchCategory()
-    }
-  }, [slug, user])
+  // Fetch category data
+  const { data: category, isLoading: categoryLoading, error: categoryError } = useCategory(slug || '')
 
-  const fetchCategory = async (reset = false) => {
-    if (!slug) return
+  // Fetch jokes for this category with pagination
+  const {
+    data: jokesData,
+    isLoading: jokesLoading,
+    error: jokesError,
+    refetch
+  } = useJokes({
+    page: currentPage,
+    categoryId: category?.id,
+    limit: JOKES_PER_PAGE,
+    orderBy: 'created_at',
+    enabled: !!category
+  })
 
-    if (reset) {
-      setLoading(true)
-    } else {
-      setLoadingMore(true)
-    }
+  // Fetch user votes and favorites for the jokes
+  const jokeIds = jokesData?.jokes?.map(j => j.id) || []
+  const { data: userVotes = [] } = useUserVotes(user?.id || '', jokeIds)
+  const { data: userFavorites = [] } = useUserFavorites(user?.id || '', jokeIds)
 
-    try {
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('slug', slug)
-        .single()
+  // Mutations for voting and favoriting
+  const voteMutation = useVoteMutation()
+  const favoriteMutation = useFavoriteMutation()
 
-      if (!categoryData) {
-        navigate('/')
-        return
-      }
+  // Process jokes with user-specific data
+  const jokes = jokesData?.jokes?.map(joke => ({
+    ...joke,
+    userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
+    isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
+  })) || []
 
-      if (reset) {
-        setCategory(categoryData)
-        setJokes([])
-        setHasMore(true)
-        setCurrentPage(0)
-      }
+  const totalJokes = jokesData?.totalCount || 0
+  const totalPages = jokesData?.totalPages || 0
 
-      const page = reset ? 0 : currentPage
-      const offset = page * JOKES_PER_PAGE
-
-      const jokesData = await fetchJokesWithDetails({
-        status: 'published',
-        categoryId: categoryData.id,
-        limit: JOKES_PER_PAGE,
-        offset: offset,
-        orderBy: 'created_at',
-        ascending: false
-      })
-
-      // Check if there are more jokes to load
-      if (jokesData.length < JOKES_PER_PAGE) {
-        setHasMore(false)
-      }
-
-      let processedJokes = jokesData
-
-      if (jokesData && user) {
-        const jokeIds = jokesData.map(j => j.id)
-
-        const [{ data: votesData }, { data: favoritesData }] = await Promise.all([
-          supabase
-            .from('votes')
-            .select('*')
-            .eq('user_id', user.id)
-            .in('joke_id', jokeIds),
-          supabase
-            .from('favorites')
-            .select('*')
-            .eq('user_id', user.id)
-            .in('joke_id', jokeIds)
-        ])
-
-        processedJokes = jokesData.map(joke => ({
-          ...joke,
-          userVote: votesData?.find(v => v.joke_id === joke.id) || null,
-          isFavorite: favoritesData?.some(f => f.joke_id === joke.id) || false
-        }))
-      }
-
-      if (reset) {
-        setJokes(processedJokes)
-      } else {
-        setJokes(prevJokes => [...prevJokes, ...processedJokes])
-      }
-    } catch (error) {
-      console.error('Error fetching category:', error)
-      navigate('/')
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }
+  const loading = categoryLoading || jokesLoading
+  const error = categoryError || jokesError
 
   const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
-    if (voteData) {
-      // Update just the specific joke that was voted on with animation
-      setJokes(prevJokes =>
-        prevJokes.map(joke => {
-          if (joke.id === jokeId) {
-            return {
-              ...joke,
-              upvotes: voteData.upvotes ?? joke.upvotes,
-              downvotes: voteData.downvotes ?? joke.downvotes,
-              score: voteData.score ?? joke.score,
-              userVote: voteData.userVote ?? joke.userVote
-            }
-          }
-          return joke
-        })
-      )
-    } else {
-      // Fallback to full refresh if no vote data provided
-      fetchCategory(true)
+    if (user && voteData?.userVote?.vote_type) {
+      voteMutation.mutate({
+        jokeId,
+        userId: user.id,
+        voteType: voteData.userVote.vote_type
+      })
     }
   }
 
-  const loadMore = () => {
-    if (!loadingMore && hasMore) {
-      setCurrentPage(prev => prev + 1)
-      fetchCategory(false)
+  const handleFavoriteToggle = (jokeId: number) => {
+    if (user) {
+      favoriteMutation.mutate({
+        jokeId,
+        userId: user.id
+      })
     }
   }
 
-  if (loading) {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  // Redirect to home if category not found
+  useEffect(() => {
+    if (slug && category === undefined) {
+      // Category is still loading
+      return
+    }
+    if (slug && category === null) {
+      navigate('/')
+    }
+  }, [slug, category, navigate])
+
+  // Handle error state
+  if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Ładowanie...</p>
+      <div className="min-h-screen bg-muted/30">
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          <div className="text-center py-16">
+            <div className="mb-6">
+              <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-4xl">❌</span>
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2 heading">
+                Wystąpił błąd
+              </h3>
+              <p className="text-content-muted mb-6">
+                Nie udało się załadować kategorii. Spróbuj odświeżyć stronę.
+              </p>
+              <button
+                onClick={() => refetch()}
+                className="btn-primary"
+              >
+                Odśwież
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!category) {
-    return null
+  if (loading || !category) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-content-muted subheading">Ładowanie kategorii...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -164,7 +137,7 @@ export function CategoryPage() {
           description={category.description || `Najlepsze dowcipy w kategorii ${category.name}. Odkryj śmieszne żarty na temat ${category.name}!`}
           canonical={`/kategoria/${category.slug}`}
           structuredData={[
-            createCategoryStructuredData({ ...category, joke_count: jokes.length }),
+            createCategoryStructuredData({ ...category, joke_count: totalJokes }),
             createBreadcrumbStructuredData([
               { name: 'Strona główna', url: 'https://jokebox.pl' },
               { name: category.name, url: `https://jokebox.pl/kategoria/${category.slug}` }
@@ -172,69 +145,74 @@ export function CategoryPage() {
           ]}
         />
       )}
-      <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-muted/30">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
         <button
           onClick={() => navigate('/')}
-          className="mb-6 text-blue-600 hover:text-blue-700 flex items-center space-x-2"
+          className="mb-6 text-primary hover:text-primary/80 flex items-center space-x-2"
         >
           <span>←</span>
           <span>Powrót</span>
         </button>
 
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-foreground mb-2 heading">
             {category.name}
           </h1>
           {category.description_seo && (
-            <p className="text-gray-600">
+            <p className="text-content-muted">
               {category.description_seo}
             </p>
           )}
-          <p className="text-sm text-gray-500 mt-2">
-            Wyświetlono {jokes.length} {jokes.length === 1 ? 'dowcip' : 'dowcipów'}{hasMore ? ' (wczytywanie...)' : ''}
+          <p className="text-sm text-muted-foreground mt-2">
+            Wyświetlono {jokes.length} z {totalJokes} dowcipów w tej kategorii
           </p>
         </div>
 
-        {jokes.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-600 text-lg">
-              Brak dowcipów w tej kategorii
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {jokes.map(joke => (
-              <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} />
-            ))}
-          </div>
-        )}
+        <div className="bg-card rounded-xl shadow-sm border border-border p-8">
+          {jokes.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="mb-6">
+                <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-4xl">😄</span>
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2 heading">
+                  Brak dowcipów w tej kategorii
+                </h3>
+                <p className="text-content-muted">
+                  Bądź pierwszy i dodaj śmieszny dowcip!
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {jokes.map(joke => (
+                <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} />
+              ))}
+            </div>
+          )}
 
-        {/* Load More Button */}
-        {hasMore && jokes.length > 0 && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loadingMore ? (
-                <>
-                  <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Ładowanie...
-                </>
-              ) : (
-                'Wczytaj więcej dowcipów'
-              )}
-            </button>
-          </div>
-        )}
+          {/* Pagination */}
+          {jokes.length > 0 && (
+            <div className="mt-8 flex justify-center items-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                loading={jokesLoading}
+              />
+            </div>
+          )}
 
-        {!hasMore && jokes.length > 0 && (
-          <div className="mt-8 text-center text-gray-500">
-            <p>To już wszystkie dowcipy w tej kategorii!</p>
-          </div>
-        )}
+          {/* Jokes count info */}
+          {totalJokes > 0 && (
+            <div className="mt-4 text-center text-muted-foreground">
+              <p className="text-sm">
+                Wyświetlono {(currentPage * JOKES_PER_PAGE) + 1}-{Math.min((currentPage + 1) * JOKES_PER_PAGE, totalJokes)} z {totalJokes} dowcipów w kategorii {category.name}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
     </>
