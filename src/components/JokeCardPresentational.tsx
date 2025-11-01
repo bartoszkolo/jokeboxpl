@@ -51,13 +51,13 @@ export function JokeCardPresentational({
   const userVoteValue = joke.userVote?.vote_type
 
   return (
-    <article className="joke-card">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
+    <article className="joke-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-3">
           {joke.categories && (
             <Link
               to={`/kategoria/${joke.categories.slug}`}
-              className="text-sm text-secondary hover:text-secondary-dark font-ui font-medium transition-colors duration-200"
+              className="inline-block px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200"
             >
               {joke.categories.name}
             </Link>
@@ -66,16 +66,16 @@ export function JokeCardPresentational({
         <button
           onClick={onTextToSpeech}
           disabled={!isTextToSpeechSupported}
-          className="text-muted-foreground hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 rounded-full bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 hover:text-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           title={isTextToSpeechSupported ? "Przeczytaj na głos" : "Przeglądarka nie obsługuje funkcji mowy"}
         >
-          <Volume2 size={18} className={isTextToSpeechSpeaking ? 'animate-pulse' : ''} />
+          <Volume2 size={16} className={isTextToSpeechSpeaking ? 'animate-pulse' : ''} />
         </button>
       </div>
 
       <Link to={`/dowcip/${joke.slug}`}>
         <div
-          className="joke-content mb-6 hover:text-muted-foreground transition-colors duration-200 text-foreground leading-relaxed"
+          className="joke-content mb-6 hover:text-muted-foreground transition-colors duration-200 text-foreground text-base leading-[1.6] [&:not(:first-child)]:mt-2"
           style={{ whiteSpace: 'pre-wrap' }}
         >
           {sanitizeText(joke.content)}
@@ -83,51 +83,44 @@ export function JokeCardPresentational({
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
-        <div className="flex items-center gap-2">
-          {/* Vote Buttons */}
+        <div className="flex items-center gap-1">
+          {/* Vote Buttons - simplified format: [👍] [score] [👎] */}
           <button
             onClick={() => onVote?.('upvote')}
             disabled={isVoting}
-            className={`vote-btn upvote transition-transform duration-200 ${
-              userVoteValue === 1 ? 'active scale-105' : ''
-            } ${!user ? 'opacity-60 hover:opacity-80' : 'hover:scale-105'} disabled:opacity-50`}
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              userVoteValue === 1
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
+                : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'
+            } ${!user ? 'opacity-60 hover:opacity-80' : 'hover:scale-105'} disabled:opacity-50 disabled:cursor-not-allowed`}
             title={!user ? "Zaloguj się, aby zagłosować" : "Głosuj na plus"}
           >
             <ThumbsUp className="h-4 w-4" />
-            <span className={`text-sm font-medium transition-all duration-300 ${
-              scoreAnimation === 'up' ? 'animate-bounce text-secondary scale-125' : ''
-            }`}>
-              {animatingUpvotes}
-            </span>
           </button>
 
-          <button
-            onClick={() => onVote?.('downvote')}
-            disabled={isVoting}
-            className={`vote-btn downvote transition-transform duration-200 ${
-              userVoteValue === -1 ? 'active scale-105' : ''
-            } ${!user ? 'opacity-60 hover:opacity-80' : 'hover:scale-105'} disabled:opacity-50`}
-            title={!user ? "Zaloguj się, aby zagłosować" : "Głosuj na minus"}
-          >
-            <ThumbsDown className="h-4 w-4" />
-            <span className={`text-sm font-medium transition-all duration-300 ${
-              scoreAnimation === 'down' ? 'animate-bounce text-destructive scale-125' : ''
-            }`}>
-              {animatingDownvotes}
-            </span>
-          </button>
-
-          {/* Score Display */}
-          <div className="px-3 py-1 bg-muted rounded-lg transition-all duration-300">
-            <span className={`text-sm font-bold transition-all duration-300 ${
-              scoreAnimation === 'up' ? 'animate-bounce text-orange-500 scale-125' :
-              scoreAnimation === 'down' ? 'animate-bounce text-red-500 scale-125' :
-              animatingScore > 0 ? 'text-secondary' :
-              animatingScore < 0 ? 'text-destructive' : 'text-foreground'
+          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 min-w-[3rem] text-center">
+            <span className={`text-lg font-bold transition-all duration-300 ${
+              scoreAnimation === 'up' ? 'animate-bounce text-green-600 dark:text-green-400 scale-110' :
+              scoreAnimation === 'down' ? 'animate-bounce text-red-600 dark:text-red-400 scale-110' :
+              animatingScore > 0 ? 'text-green-600 dark:text-green-400' :
+              animatingScore < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'
             }`}>
               {animatingScore > 0 ? '+' : ''}{animatingScore}
             </span>
           </div>
+
+          <button
+            onClick={() => onVote?.('downvote')}
+            disabled={isVoting}
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              userVoteValue === -1
+                ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800'
+                : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'
+            } ${!user ? 'opacity-60 hover:opacity-80' : 'hover:scale-105'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={!user ? "Zaloguj się, aby zagłosować" : "Głosuj na minus"}
+          >
+            <ThumbsDown className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -135,10 +128,10 @@ export function JokeCardPresentational({
             <button
               onClick={onFavorite}
               id={`heart-${joke.id}`}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 transform ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 transform ${
                 isFavorite
-                  ? 'text-destructive bg-destructive/10 hover:bg-destructive/20 scale-105'
-                  : 'text-muted-foreground hover:text-destructive hover:bg-destructive/5 hover:scale-105'
+                  ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50 scale-105'
+                  : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 hover:scale-105'
               }`}
               title="Dodaj do ulubionych"
             >
@@ -146,22 +139,22 @@ export function JokeCardPresentational({
                 size={16}
                 className={`transition-all duration-300 ${isFavorite ? 'fill-current' : ''}`}
               />
-              <span className="text-sm">Ulubione</span>
+              <span className="text-sm font-medium">Ulubione</span>
             </button>
           )}
 
           <div className="relative">
             <button
               onClick={onShare}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:scale-105"
               title="Udostępnij"
             >
               <Share2 size={16} />
-              <span className="text-sm">Udostępnij</span>
+              <span className="text-sm font-medium">Udostępnij</span>
             </button>
 
             {showShare && (
-              <div className="absolute right-0 mt-2 bg-white border rounded-lg shadow-lg p-3 flex space-x-2 z-10">
+              <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 flex space-x-2 z-10">
                 <FacebookShareButton url={shareUrl} quote={shareTitle}>
                   <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white hover:bg-blue-700 transition">
                     f
@@ -183,14 +176,10 @@ export function JokeCardPresentational({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4 meta-text pt-4 border-t border-border">
-        <div className="flex items-center gap-1">
-          <span>Dodane przez:</span>
-          <span className="font-medium">{joke.profiles?.username || 'Anonim'}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span>{new Date(joke.created_at).toLocaleDateString('pl-PL')}</span>
-        </div>
+      {/* Metadata - moved above actions, right-aligned */}
+      <div className="mt-4 flex justify-end items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+        <span>Dodane przez: <span className="font-medium text-gray-700 dark:text-gray-300">{joke.profiles?.username || 'Anonim'}</span></span>
+        <span>{new Date(joke.created_at).toLocaleDateString('pl-PL')}</span>
       </div>
 
       {/* Login Prompt Modal */}
