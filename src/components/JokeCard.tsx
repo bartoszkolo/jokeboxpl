@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share'
 import { Link } from 'react-router-dom'
 import { formatTextContent, createTextExcerpt, sanitizeText } from '@/lib/formatText'
+import { LoginPrompt } from './LoginPrompt'
 
 interface JokeCardProps {
   joke: JokeWithAuthor
@@ -18,6 +19,7 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
   const [isVoting, setIsVoting] = useState(false)
   const [isFavorite, setIsFavorite] = useState(joke.isFavorite || false)
   const [showShare, setShowShare] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [scoreAnimation, setScoreAnimation] = useState<'up' | 'down' | null>(null)
   const [animatingScore, setAnimatingScore] = useState(joke.score)
   const [animatingUpvotes, setAnimatingUpvotes] = useState(joke.upvotes)
@@ -27,7 +29,13 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
   const shareTitle = createTextExcerpt(joke.content, 100)
 
   const handleVote = async (voteValue: number) => {
-    if (!user || isVoting) return
+    if (!user) {
+      // Show login prompt for non-logged users
+      setShowLoginPrompt(true)
+      return
+    }
+
+    if (isVoting) return
 
     setIsVoting(true)
     try {
@@ -202,10 +210,11 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
           {/* Vote Buttons */}
           <button
             onClick={() => handleVote(1)}
-            disabled={!user || isVoting}
+            disabled={isVoting}
             className={`vote-btn upvote ${
               userVoteValue === 1 ? 'active' : ''
-            } disabled:opacity-50`}
+            } ${!user ? 'opacity-60 hover:opacity-80' : ''} disabled:opacity-50`}
+            title={!user ? "Zaloguj się, aby zagłosować" : "Głosuj na plus"}
           >
             <ThumbsUp className="h-4 w-4" />
             <span className={`text-sm font-medium transition-all duration-300 ${
@@ -217,10 +226,11 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
 
           <button
             onClick={() => handleVote(-1)}
-            disabled={!user || isVoting}
+            disabled={isVoting}
             className={`vote-btn downvote ${
               userVoteValue === -1 ? 'active' : ''
-            } disabled:opacity-50`}
+            } ${!user ? 'opacity-60 hover:opacity-80' : ''} disabled:opacity-50`}
+            title={!user ? "Zaloguj się, aby zagłosować" : "Głosuj na minus"}
           >
             <ThumbsDown className="h-4 w-4" />
             <span className={`text-sm font-medium transition-all duration-300 ${
@@ -305,6 +315,13 @@ export function JokeCard({ joke, onVoteChange }: JokeCardProps) {
           <span>{new Date(joke.created_at).toLocaleDateString('pl-PL')}</span>
         </div>
       </div>
+
+      {/* Login Prompt Modal */}
+      <LoginPrompt
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        message="Aby oddać głos na dowcip, musisz być zalogowany. Zaloguj się lub załóż konto, aby móc oceniać dowcipy!"
+      />
     </article>
   )
 }
