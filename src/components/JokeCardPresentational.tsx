@@ -48,7 +48,7 @@ export function JokeCardPresentational({
   onTextToSpeech,
   onLoginPromptClose
 }: JokeCardPresentationalProps) {
-  const userVoteValue = joke.userVote?.vote_value
+  const userVoteValue = joke.userVote?.vote_type
 
   return (
     <article className="joke-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6">
