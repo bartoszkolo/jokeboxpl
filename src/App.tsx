@@ -6,6 +6,7 @@ import { SettingsProvider } from './contexts/SettingsContext'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
 import { SEO, createWebsiteStructuredData } from './components/SEO'
+import { CookieConsentBanner } from './components/CookieConsent'
 import { AdminRoute } from './components/AdminRoute'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { HomePage } from './pages/HomePage'
@@ -20,6 +21,7 @@ import { RandomJokePage } from './pages/RandomJokePage'
 import SearchPage from './pages/SearchPage'
 import { TermsOfService } from './components/TermsOfService'
 import { PrivacyPolicy } from './components/PrivacyPolicy'
+import { CookiePolicyPage } from './pages/CookiePolicyPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { TextFormattingTest } from './components/TextFormattingTest'
 import { AdminLayout } from './components/AdminLayout'
@@ -75,6 +77,7 @@ function App() {
               <Route path="/kategoria/:slug" element={<CategoryPage />} />
               <Route path="/regulamin" element={<TermsOfService />} />
               <Route path="/polityka-prywatnosci" element={<PrivacyPolicy />} />
+              <Route path="/polityka-ciasteczek" element={<CookiePolicyPage />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
@@ -90,6 +93,7 @@ function App() {
             </Routes>
           </main>
           <Footer />
+          <CookieConsentBanner />
         </div>
       </SettingsProvider>
       </AuthProvider>
