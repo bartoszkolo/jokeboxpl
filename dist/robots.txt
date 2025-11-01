@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Disallow: /logowanie
+Disallow: /rejestracja
+Disallow: /dodaj
+Disallow: /ulubione
+Disallow: /admin
+Disallow: /api/
+
+# Allow search engines to index main content
+Allow: /wyszukiwarka
+Allow: /losuj
+Allow: /ranking
+Allow: /dowcip/
+Allow: /kategoria/
+
+# Sitemap location
+Sitemap: https://jokebox.pl/sitemap.xml
+
+# Crawl delay (optional, be nice to our server)
+Crawl-delay: 1

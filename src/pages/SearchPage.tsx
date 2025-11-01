@@ -13,7 +13,7 @@ export default function SearchPage() {
   const { user } = useAuth()
 
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
-  const [sortBy, setSortBy] = useState<'created_at' | 'score'>('created_at')
+  const [sortBy, setSortBy] = useState<'created_at' | 'score' | 'relevance'>('relevance')
 
   // Fetch categories
   const { data: categories = [] } = useCategories()
@@ -130,8 +130,21 @@ export default function SearchPage() {
             Wyniki wyszukiwania
           </h1>
           <p className="text-content-muted">
-            Znaleziono <span className="font-semibold">{totalCount}</span> dowcipów dla zapytania:
-            <span className="font-semibold"> "{query}"</span>
+            {totalCount > 0 ? (
+              <>
+                Znaleziono <span className="font-semibold">{totalCount}</span> dowcipów dla zapytania:
+                <span className="font-semibold"> "{query}"</span>
+                {jokes.length > 0 && sortBy === 'relevance' && (
+                  <span className="text-sm text-muted-foreground ml-2">
+                    (sortowane według trafności)
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                Brak wyników dla zapytania: <span className="font-semibold"> "{query}"</span>
+              </>
+            )}
           </p>
         </div>
 
@@ -164,9 +177,10 @@ export default function SearchPage() {
               </label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'created_at' | 'score')}
+                onChange={(e) => setSortBy(e.target.value as 'created_at' | 'score' | 'relevance')}
                 className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
               >
+                <option value="relevance">Najbardziej trafne</option>
                 <option value="created_at">Najnowsze</option>
                 <option value="score">Najpopularniejsze</option>
               </select>

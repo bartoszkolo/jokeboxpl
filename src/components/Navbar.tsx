@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { LogOut, User, Plus, Crown, Shuffle, ChevronDown, Settings } from 'lucide-react'
+import { LogOut, Plus, Crown, Shuffle, ChevronDown } from 'lucide-react'
 import { SearchBar } from './SearchBar'
 import { SettingsToggle } from './SettingsToggle'
 

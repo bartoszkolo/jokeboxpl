@@ -2,7 +2,6 @@ import { JokeWithAuthor } from '@/types/database'
 import { JokeCardPresentational } from './JokeCardPresentational'
 import { useJokeVote, useJokeFavorite, useJokeShare, useTextToSpeech } from '@/hooks/useJokeInteractions'
 import { useAuth } from '@/contexts/AuthContext'
-import { createTextExcerpt } from '@/lib/formatText'
 
 interface JokeCardSmartProps {
   joke: JokeWithAuthor

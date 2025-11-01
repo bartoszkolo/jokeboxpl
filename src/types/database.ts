@@ -156,4 +156,5 @@ export type JokeWithAuthor = Joke & {
   categories: Category | null
   userVote?: Vote | null
   isFavorite?: boolean
+  search_rank?: number // Search relevance rank (0-1)
 }

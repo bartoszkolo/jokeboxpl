@@ -264,13 +264,13 @@ export function useUserAllFavorites(userId: string, page: number = 0, limit: num
   })
 }
 
-// Hook for searching jokes
+// Hook for searching jokes using Full-Text Search (server-side)
 export function useSearchJokes(query: string, filters: {
   categoryId?: number | null
-  sortBy?: 'created_at' | 'score'
+  sortBy?: 'created_at' | 'score' | 'relevance'
   page?: number
 } = {}) {
-  const { categoryId = null, sortBy = 'created_at', page = 0 } = filters
+  const { categoryId = null, sortBy = 'relevance', page = 0 } = filters
   const limit = 15
 
   return useQuery({
@@ -280,38 +280,65 @@ export function useSearchJokes(query: string, filters: {
 
       const offset = page * limit
 
-      // Build search query
-      let searchQuery = supabase
-        .from('jokes')
-        .select('id', { count: 'exact', head: true })
-        .textSearch('content', query)
-        .eq('status', 'published')
-
-      if (categoryId) {
-        searchQuery = searchQuery.eq('category_id', categoryId)
-      }
-
-      const { count: totalCount } = await searchQuery
-
-      // Get actual results
-      const jokesData = await fetchJokesWithDetails({
-        status: 'published',
-        categoryId,
-        limit,
-        offset,
-        orderBy: sortBy,
-        ascending: sortBy === 'score' ? true : false
+      // Use RPC function for server-side full-text search
+      const { data: searchResults, error: searchError } = await supabase.rpc('search_jokes', {
+        search_query: query.trim(),
+        p_category_id: categoryId,
+        p_limit: limit,
+        p_offset: offset,
+        p_order_by: sortBy
       })
 
-      // Filter search results client-side for more accurate search
-      const filteredResults = jokesData.filter(joke =>
-        joke.content.toLowerCase().includes(query.toLowerCase())
-      )
+      if (searchError) {
+        console.error('Search error:', searchError)
+        throw new Error('Search failed')
+      }
+
+      // Get total count using the count function
+      const { data: totalCount, error: countError } = await supabase.rpc('count_search_results', {
+        search_query: query.trim(),
+        p_category_id: categoryId
+      })
+
+      if (countError) {
+        console.error('Count error:', countError)
+        throw new Error('Count failed')
+      }
+
+      // Transform the results to match JokeWithAuthor format
+      const jokes = searchResults?.map(result => ({
+        id: result.id,
+        content: result.content,
+        status: result.status,
+        author_id: result.author_id,
+        category_id: result.category_id,
+        slug: result.slug,
+        upvotes: result.upvotes,
+        downvotes: result.downvotes,
+        score: result.score,
+        created_at: result.created_at,
+        updated_at: result.updated_at,
+        profiles: result.author_username ? {
+          id: result.author_id,
+          username: result.author_username,
+          is_admin: false, // We don't need this for search results
+          newsletter_consent: false,
+          created_at: result.created_at
+        } : null,
+        categories: result.category_name ? {
+          id: result.category_id,
+          name: result.category_name,
+          slug: result.category_slug,
+          description_seo: null,
+          created_at: result.created_at
+        } : null,
+        search_rank: result.rank // Include search relevance rank
+      })) || []
 
       return {
-        jokes: filteredResults,
-        totalCount: filteredResults.length,
-        totalPages: Math.ceil(filteredResults.length / limit)
+        jokes,
+        totalCount: totalCount || 0,
+        totalPages: Math.ceil((totalCount || 0) / limit)
       }
     },
     enabled: query.trim().length > 0,

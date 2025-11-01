@@ -10,9 +10,9 @@ interface PaginationProps {
 export function Pagination({ currentPage, totalPages, onPageChange, loading = false }: PaginationProps) {
   const getVisiblePages = () => {
     const delta = 2
-    const range = []
-    const rangeWithDots = []
-    let l
+    const range: number[] = []
+    const rangeWithDots: (number | string)[] = []
+    let l: number | undefined
 
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
@@ -20,8 +20,8 @@ export function Pagination({ currentPage, totalPages, onPageChange, loading = fa
       }
     }
 
-    range.forEach((i, index) => {
-      if (l) {
+    range.forEach((i) => {
+      if (l !== undefined) {
         if (i - l === 2) {
           rangeWithDots.push(l + 1)
         } else if (i - l !== 1) {
@@ -61,10 +61,10 @@ export function Pagination({ currentPage, totalPages, onPageChange, loading = fa
               </span>
             ) : (
               <button
-                onClick={() => onPageChange(page - 1)} // Convert to 0-based index
+                onClick={() => onPageChange((page as number) - 1)} // Convert to 0-based index
                 disabled={loading}
                 className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors duration-200 ${
-                  page - 1 === currentPage
+                  (page as number) - 1 === currentPage
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'border-border bg-card text-card-foreground hover:bg-muted hover:text-foreground'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}

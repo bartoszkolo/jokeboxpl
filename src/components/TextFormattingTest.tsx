@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatTextContent, formatTextContentCSS, sanitizeText } from '@/lib/formatText'
+import { formatTextContent, sanitizeText } from '@/lib/formatText'
 
 export function TextFormattingTest() {
   const [testText, setTestText] = useState(`Człowiek wchodzi do baru.

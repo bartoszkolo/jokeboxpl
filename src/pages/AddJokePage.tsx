@@ -20,7 +20,7 @@ export function AddJokePage() {
   const [duplicateWarning, setDuplicateWarning] = useState<{
     isDuplicate: boolean
     reason?: string
-    similarJoke?: { content: string; id: number; similarity: number }
+    similarJoke?: { content: string; id: number; slug?: string; similarity: number }
   } | null>(null)
   const [checkingDuplicates, setCheckingDuplicates] = useState(false)
 
@@ -38,7 +38,7 @@ export function AddJokePage() {
       // Pobierz istniejące dowcipy z bazy
       const { data: existingJokes, error } = await supabase
         .from('jokes')
-        .select('id, content')
+        .select('id, content, slug')
         .in('status', ['published', 'pending']) // Sprawdzaj zarówno opublikowane jak i oczekujące
 
       if (error) {
@@ -218,11 +218,28 @@ export function AddJokePage() {
                         <p className="text-xs text-yellow-600 mb-1">
                           Podobny dowcip ({duplicateWarning.similarJoke.similarity}% podobieństwa):
                         </p>
-                        <p className="text-sm text-yellow-800 italic">
+                        <p className="text-sm text-yellow-800 italic mb-2">
                           "{duplicateWarning.similarJoke.content.length > 100
                             ? duplicateWarning.similarJoke.content.substring(0, 100) + '...'
                             : duplicateWarning.similarJoke.content}"
                         </p>
+                        {duplicateWarning.similarJoke.slug ? (
+                          <a
+                            href={`/dowcip/${duplicateWarning.similarJoke.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-xs text-yellow-700 hover:text-yellow-900 underline font-medium"
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Zobacz podobny dowcip
+                          </a>
+                        ) : (
+                          <p className="text-xs text-yellow-600">
+                            ID dowcipu: #{duplicateWarning.similarJoke.id}
+                          </p>
+                        )}
                       </div>
                     )}
                     <p className="text-xs text-yellow-600 mt-2">

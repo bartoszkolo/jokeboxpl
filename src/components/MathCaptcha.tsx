@@ -27,7 +27,7 @@ export function MathCaptcha({ onVerify, onReset }: MathCaptchaProps) {
 
     setNum1(a)
     setNum2(b)
-    setOperator(selectedOperator)
+    setOperator(selectedOperator || '+')
 
     let answer = 0
     if (selectedOperator === '+') {

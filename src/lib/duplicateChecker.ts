@@ -88,9 +88,9 @@ export function calculateSimilarity(str1: string, str2: string): number {
 // Sprawdzanie czy tekst jest duplikatem
 export function isDuplicate(
   newJokeContent: string,
-  existingJokes: Array<{ content: string; id: number }>,
+  existingJokes: Array<{ content: string; id: number; slug?: string }>,
   threshold: number = 85
-): { isDuplicate: boolean; similarJoke?: { content: string; id: number; similarity: number } } {
+): { isDuplicate: boolean; similarJoke?: { content: string; id: number; slug?: string; similarity: number } } {
   const normalizedNewJoke = normalizeText(newJokeContent);
 
   for (const joke of existingJokes) {
@@ -102,6 +102,7 @@ export function isDuplicate(
         similarJoke: {
           content: joke.content,
           id: joke.id,
+          slug: joke.slug,
           similarity: Math.round(similarity * 10) / 10
         }
       };
@@ -114,10 +115,10 @@ export function isDuplicate(
 // Funkcja do sprawdzania czy fraza jest zbyt podobna do fragmentu innego dowcipu
 export function containsSimilarFragment(
   newJokeContent: string,
-  existingJokes: Array<{ content: string; id: number }>,
+  existingJokes: Array<{ content: string; id: number; slug?: string }>,
   fragmentLength: number = 20,
   threshold: number = 90
-): { hasSimilarFragment: boolean; similarJoke?: { content: string; id: number; similarity: number } } {
+): { hasSimilarFragment: boolean; similarJoke?: { content: string; id: number; slug?: string; similarity: number } } {
   const normalizedNewJoke = normalizeText(newJokeContent);
 
   // Sprawdzaj fragmenty nowego dowcipu
@@ -134,6 +135,7 @@ export function containsSimilarFragment(
           similarJoke: {
             content: joke.content,
             id: joke.id,
+            slug: joke.slug,
             similarity: Math.round(similarity * 10) / 10
           }
         };
@@ -147,7 +149,7 @@ export function containsSimilarFragment(
 // Kompleksowe sprawdzanie duplikatów
 export async function comprehensiveDuplicateCheck(
   newJokeContent: string,
-  existingJokes: Array<{ content: string; id: number }>,
+  existingJokes: Array<{ content: string; id: number; slug?: string }>,
   options: {
     similarityThreshold?: number;
     checkFragments?: boolean;
@@ -157,7 +159,7 @@ export async function comprehensiveDuplicateCheck(
 ): Promise<{
   isDuplicate: boolean;
   reason?: string;
-  similarJoke?: { content: string; id: number; similarity: number };
+  similarJoke?: { content: string; id: number; slug?: string; similarity: number };
 }> {
   const {
     similarityThreshold = 85,

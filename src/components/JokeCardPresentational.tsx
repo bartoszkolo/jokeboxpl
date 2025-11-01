@@ -48,7 +48,7 @@ export function JokeCardPresentational({
   onTextToSpeech,
   onLoginPromptClose
 }: JokeCardPresentationalProps) {
-  const userVoteValue = joke.userVote?.vote_type
+  const userVoteValue = joke.userVote?.vote_value
 
   return (
     <article className="joke-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6">
@@ -153,7 +153,7 @@ export function JokeCardPresentational({
 
             {showShare && (
               <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 flex space-x-2 z-10">
-                <FacebookShareButton url={shareUrl} quote={shareTitle}>
+                <FacebookShareButton url={shareUrl} hashtag={shareTitle}>
                   <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white hover:bg-blue-700 transition">
                     f
                   </div>

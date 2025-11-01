@@ -35,8 +35,8 @@ export const RandomJoke: React.FC = () => {
         .from('jokes')
         .select(`
           *,
-          author:profiles(username),
-          category:categories(name, slug)
+          profiles(username, is_admin, newsletter_consent, created_at),
+          categories(name, slug, description_seo, created_at)
         `)
         .eq('status', 'published')
         .range(randomOffset, randomOffset + 1)
@@ -60,15 +60,15 @@ export const RandomJoke: React.FC = () => {
         .from('jokes')
         .select(`
           *,
-          author:profiles(username),
-          category:categories(name, slug)
+          profiles(username, is_admin, newsletter_consent, created_at),
+          categories(name, slug, description_seo, created_at)
         `)
         .eq('status', 'published')
         .order('id', { ascending: true })
 
       if (data && data.length > 0) {
         const jokeIndex = dayOfYear % data.length
-        setDailyJoke(data[jokeIndex])
+        setDailyJoke(data[jokeIndex] || null)
       }
     } catch (error) {
       console.error('Error fetching daily joke:', error)
@@ -109,11 +109,11 @@ export const RandomJoke: React.FC = () => {
                 {randomJoke.content}
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-content-light">
-                <span>Autor: {randomJoke.author?.username || 'Anonim'}</span>
-                {randomJoke.category && (
+                <span>Autor: {randomJoke.profiles?.username || 'Anonim'}</span>
+                {randomJoke.categories && (
                   <>
                     <span>•</span>
-                    <span>Kategoria: {randomJoke.category.name}</span>
+                    <span>Kategoria: {randomJoke.categories.name}</span>
                   </>
                 )}
               </div>
@@ -168,11 +168,11 @@ export const RandomJoke: React.FC = () => {
                 {dailyJoke.content}
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-content-light">
-                <span>Autor: {dailyJoke.author?.username || 'Anonim'}</span>
-                {dailyJoke.category && (
+                <span>Autor: {dailyJoke.profiles?.username || 'Anonim'}</span>
+                {dailyJoke.categories && (
                   <>
                     <span>•</span>
-                    <span>Kategoria: {dailyJoke.category.name}</span>
+                    <span>Kategoria: {dailyJoke.categories.name}</span>
                   </>
                 )}
               </div>
