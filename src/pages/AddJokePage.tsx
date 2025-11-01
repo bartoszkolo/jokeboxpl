@@ -6,13 +6,13 @@ import { supabase } from '@/lib/supabase'
 import { Category } from '@/types/database'
 import { MathCaptcha } from '@/components/MathCaptcha'
 import { comprehensiveDuplicateCheck } from '@/lib/duplicateChecker'
+import { useCategories } from '@/hooks/useJokes'
 
 export function AddJokePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [content, setContent] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
-  const [categories, setCategories] = useState<Category[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -24,21 +24,8 @@ export function AddJokePage() {
   } | null>(null)
   const [checkingDuplicates, setCheckingDuplicates] = useState(false)
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/logowanie')
-      return
-    }
-    fetchCategories()
-  }, [user, navigate])
-
-  const fetchCategories = async () => {
-    const { data } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name')
-    if (data) setCategories(data)
-  }
+  // Fetch categories using React Query
+  const { data: categories = [] } = useCategories()
 
   const checkForDuplicates = async (jokeContent: string) => {
     if (jokeContent.trim().length < 10) {

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useUserAllFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
@@ -15,13 +15,8 @@ export function FavoritesPage() {
 
   const FAVORITES_PER_PAGE = 15
 
-  // Redirect if not logged in
-  useEffect(() => {
-    if (!user) {
-      navigate('/logowanie')
-      return
-    }
-  }, [user, navigate])
+  // Note: Auth check is now handled by ProtectedRoute in App.tsx
+  // This prevents content flash and provides better UX
 
   // Fetch user favorites with pagination
   const {

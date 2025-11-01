@@ -7,6 +7,7 @@ import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
 import { SEO, createWebsiteStructuredData } from './components/SEO'
 import { AdminRoute } from './components/AdminRoute'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -58,9 +59,9 @@ function App() {
               <Route path="/losuj" element={<RandomJokePage />} />
               <Route path="/logowanie" element={<LoginPage />} />
               <Route path="/rejestracja" element={<RegisterPage />} />
-              <Route path="/dodaj" element={<AddJokePage />} />
+              <Route path="/dodaj" element={<ProtectedRoute><AddJokePage /></ProtectedRoute>} />
               <Route path="/ranking" element={<RankingPage />} />
-              <Route path="/ulubione" element={<FavoritesPage />} />
+              <Route path="/ulubione" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
               <Route path="/dowcip/:slug" element={<JokeDetailPage />} />
               <Route path="/kategoria/:slug" element={<CategoryPage />} />
               <Route path="/regulamin" element={<TermsOfService />} />
