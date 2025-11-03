@@ -4,16 +4,20 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { useSearchJokes, useCategories, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeCard } from '@/components/JokeCard'
 import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
+import { Pagination } from '@/components/Pagination'
 import { Loader2, Search as SearchIcon } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function SearchPage() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const query = searchParams.get('q') || ''
   const { user } = useAuth()
 
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
   const [sortBy, setSortBy] = useState<'created_at' | 'score' | 'relevance'>('relevance')
+
+  // Get current page from URL params, default to 0
+  const currentPage = parseInt(searchParams.get('page') || '0')
 
   // Fetch categories
   const { data: categories = [] } = useCategories()
@@ -26,7 +30,7 @@ export default function SearchPage() {
   } = useSearchJokes(query, {
     categoryId: selectedCategory,
     sortBy,
-    page: 0
+    page: currentPage
   })
 
   // Fetch user votes and favorites for the jokes
@@ -52,6 +56,21 @@ export default function SearchPage() {
   }, [searchData, userVotes, userFavorites])
 
   const totalCount = searchData?.totalCount || 0
+  const totalPages = searchData?.totalPages || 0
+
+  const handlePageChange = (page: number) => {
+    // Update URL params with new page
+    const newParams = new URLSearchParams(searchParams)
+    if (page === 0) {
+      newParams.delete('page')
+    } else {
+      newParams.set('page', page.toString())
+    }
+    setSearchParams(newParams)
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
     if (user && voteData?.userVote?.vote_type) {
@@ -155,6 +174,11 @@ export default function SearchPage() {
               <>
                 Znaleziono <span className="font-semibold">{totalCount}</span> dowcipów dla zapytania:
                 <span className="font-semibold"> "{query}"</span>
+                {totalPages > 1 && (
+                  <span className="text-sm text-muted-foreground ml-2">
+                    (strona {currentPage + 1} z {totalPages})
+                  </span>
+                )}
                 {jokes.length > 0 && sortBy === 'relevance' && (
                   <span className="text-sm text-muted-foreground ml-2">
                     (sortowane według trafności)
@@ -215,11 +239,30 @@ export default function SearchPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : jokes.length > 0 ? (
-          <div className="space-y-4">
-            {jokes.map((joke) => (
-              <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {jokes.map((joke) => (
+                <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  loading={loading}
+                />
+              </div>
+            )}
+
+            {/* Results count info */}
+            <div className="text-center mt-4 text-sm text-content-muted">
+              Pokazywanie {currentPage * 15 + 1} - {Math.min((currentPage + 1) * 15, totalCount)} z {totalCount} wyników
+            </div>
+          </>
         ) : (
           <div className="text-center py-16">
             <SearchIcon className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
