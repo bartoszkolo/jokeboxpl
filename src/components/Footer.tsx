@@ -11,9 +11,42 @@ export function Footer() {
           {/* O nas */}
           <div className="flex flex-col items-center md:items-start">
             <img src="/jokebox_logo.png" alt="Jokebox" className="h-16 w-auto mb-4" />
-            <p className="text-sm text-orange-200 text-center md:text-left">
+            <p className="text-sm text-orange-200 text-center md:text-left mb-6">
               Najlepsza platforma z polskimi dowcipami. Czytaj, dodawaj i głosuj na swoje ulubione żarty!
             </p>
+
+            {/* Pobierz naszą aplikację */}
+            <div className="flex flex-col items-center md:items-start">
+              <p className="text-white text-sm font-semibold mb-3">Pobierz naszą aplikację:</p>
+              <div className="flex flex-row space-x-2">
+                <a
+                  href="https://apps.apple.com/pl/app/dowcipy-kawa%C5%82y-i-%C5%BCarty-pl/id6744039355?l=pl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-80 transition"
+                  aria-label="Pobierz z App Store"
+                >
+                  <img
+                    src="/apple-app-store.png"
+                    alt="Pobierz z App Store"
+                    className="h-10 w-auto"
+                  />
+                </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.codebuzz.jokebox&hl=pl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-80 transition"
+                  aria-label="Pobierz z Google Play"
+                >
+                  <img
+                    src="/google-play.png"
+                    alt="Pobierz z Google Play"
+                    className="h-10 w-auto"
+                  />
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* Nawigacja */}
