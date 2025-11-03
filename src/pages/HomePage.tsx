@@ -270,17 +270,20 @@ export function HomePage() {
         </div>
 
         {/* SEO Description Section */}
-        <div className="mt-16 mb-8 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gradient mb-3 heading">
-              Witaj w Jokebox!
-            </h1>
-            <p className="text-sm text-content-muted max-w-3xl mx-auto leading-relaxed">
-              Odkryj najlepsze polskie dowcipy, głosuj na swoje ulubione i dodawaj własne żarty.
-              Jokebox to największa polska platforma z dowcipami gdzie znajdziesz tysiące żartów
-              w różnych kategoriach. Dołącz do naszej społeczności, baw się dobrze i dziel się
-              humorem z innymi. Codziennie nowe dowcipy, rankingi i możliwość dodawania
-              własnych żartów.
+        <div className="mt-8 mb-4">
+          {/* Separator line */}
+          <div className="max-w-4xl mx-auto mb-6">
+            <div className="border-t border-border/50"></div>
+          </div>
+
+          <div className="max-w-4xl mx-auto text-center px-4">
+            <h2 className="text-xl font-bold text-foreground mb-3 heading">
+              Najlepsze polskie dowcipy w jednym miejscu
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+              Jokebox to największa polska platforma z dowcipami. Znajdziesz tu tysiące
+              żartów w różnych kategoriach – od sucharów, przez memy, aż po opowieści
+              z życia. Głosuj na najlepsze, dodawaj własne i baw się razem z innymi!
             </p>
           </div>
         </div>
