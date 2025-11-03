@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { JokeWithAuthor } from '@/types/database'
-import { Shuffle, Sparkles, Volume2, ArrowLeft } from 'lucide-react'
+import { Shuffle, Sparkles, Volume2, Pause, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function RandomJokePage() {
@@ -9,6 +9,9 @@ export function RandomJokePage() {
   const [dailyJoke, setDailyJoke] = useState<JokeWithAuthor | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingDaily, setLoadingDaily] = useState(true)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null)
 
   useEffect(() => {
     fetchDailyJoke()
@@ -81,10 +84,48 @@ export function RandomJokePage() {
   }
 
   const handleSpeak = (text: string) => {
-    if ('speechSynthesis' in window) {
+    if (!('speechSynthesis' in window)) return
+
+    if (!isSpeaking) {
+      // Start speaking
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = 'pl-PL'
+
+      utterance.onstart = () => {
+        setIsSpeaking(true)
+        setIsPaused(false)
+      }
+
+      utterance.onend = () => {
+        setIsSpeaking(false)
+        setIsPaused(false)
+        setCurrentUtterance(null)
+      }
+
+      utterance.onerror = () => {
+        setIsSpeaking(false)
+        setIsPaused(false)
+        setCurrentUtterance(null)
+      }
+
+      utterance.onpause = () => {
+        setIsPaused(true)
+      }
+
+      utterance.onresume = () => {
+        setIsPaused(false)
+      }
+
+      setCurrentUtterance(utterance)
       window.speechSynthesis.speak(utterance)
+    } else if (isPaused) {
+      // Resume if paused
+      window.speechSynthesis.resume()
+      setIsPaused(false)
+    } else {
+      // Pause if speaking
+      window.speechSynthesis.pause()
+      setIsPaused(true)
     }
   }
 
@@ -164,9 +205,16 @@ export function RandomJokePage() {
                     <button
                       onClick={() => randomJoke && handleSpeak(randomJoke.content)}
                       className="flex items-center gap-3 px-6 py-4 rounded-xl text-content-muted hover:text-primary hover:bg-primary/10 transition-all duration-200 border border-border"
+                      title={!isSpeaking ? 'Przeczytaj na głos' : (isPaused ? 'Wznów odtwarzanie' : 'Wstrzymaj odtwarzanie')}
                     >
-                      <Volume2 className="h-5 w-5" />
-                      Przeczytaj na głos
+                      {!isSpeaking ? (
+                        <Volume2 className="h-5 w-5" />
+                      ) : isPaused ? (
+                        <Volume2 className="h-5 w-5 animate-pulse" />
+                      ) : (
+                        <Pause className="h-5 w-5 animate-pulse" />
+                      )}
+                      {!isSpeaking ? 'Przeczytaj na głos' : (isPaused ? 'Wznów' : 'Wstrzymaj')}
                     </button>
                   </div>
                 </div>
@@ -224,9 +272,16 @@ export function RandomJokePage() {
                   <button
                     onClick={() => handleSpeak(dailyJoke.content)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-content-muted hover:text-accent hover:bg-accent/10 transition-all duration-200 border border-border/50"
+                    title={!isSpeaking ? 'Przeczytaj na głos' : (isPaused ? 'Wznów odtwarzanie' : 'Wstrzymaj odtwarzanie')}
                   >
-                    <Volume2 className="h-4 w-4" />
-                    Przeczytaj na głos
+                    {!isSpeaking ? (
+                      <Volume2 className="h-4 w-4" />
+                    ) : isPaused ? (
+                      <Volume2 className="h-4 w-4 animate-pulse" />
+                    ) : (
+                      <Pause className="h-4 w-4 animate-pulse" />
+                    )}
+                    {!isSpeaking ? 'Przeczytaj na głos' : (isPaused ? 'Wznów' : 'Wstrzymaj')}
                   </button>
                 </div>
               ) : (

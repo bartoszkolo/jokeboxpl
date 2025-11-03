@@ -1,5 +1,5 @@
 import { JokeWithAuthor, Category } from '@/types/database'
-import { ThumbsUp, ThumbsDown, Heart, Share2, Volume2, Edit2, Save, X } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Heart, Share2, Volume2, VolumeX, Pause, Edit2, Save, X } from 'lucide-react'
 import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share'
 import { Link } from 'react-router-dom'
 import { sanitizeText } from '@/lib/formatText'
@@ -22,6 +22,7 @@ interface JokeCardPresentationalProps {
   shareTitle?: string
   isTextToSpeechSupported?: boolean
   isTextToSpeechSpeaking?: boolean
+  isTextToSpeechPaused?: boolean
   isEditing?: boolean
   editContent?: string
   editCategoryId?: number | null
@@ -54,6 +55,7 @@ export function JokeCardPresentational({
   shareTitle = '',
   isTextToSpeechSupported = false,
   isTextToSpeechSpeaking = false,
+  isTextToSpeechPaused = false,
   isEditing = false,
   editContent = '',
   editCategoryId = null,
@@ -116,9 +118,19 @@ export function JokeCardPresentational({
             onClick={onTextToSpeech}
             disabled={!isTextToSpeechSupported}
             className="p-2 rounded-full bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 hover:text-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            title={isTextToSpeechSupported ? "Przeczytaj na głos" : "Przeglądarka nie obsługuje funkcji mowy"}
+            title={isTextToSpeechSupported ? (
+            isTextToSpeechSpeaking ? (isTextToSpeechPaused ? "Wznów odtwarzanie" : "Wstrzymaj odtwarzanie") : "Przeczytaj na głos"
+          ) : "Przeglądarka nie obsługuje funkcji mowy"}
           >
-            <Volume2 size={16} className={isTextToSpeechSpeaking ? 'animate-pulse' : ''} />
+            {isTextToSpeechSpeaking ? (
+              isTextToSpeechPaused ? (
+                <Volume2 size={16} className="animate-pulse" />
+              ) : (
+                <Pause size={16} className="animate-pulse" />
+              )
+            ) : (
+              <Volume2 size={16} />
+            )}
           </button>
         </div>
       </div>

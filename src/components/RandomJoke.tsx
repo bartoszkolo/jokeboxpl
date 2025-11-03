@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { JokeWithAuthor } from '@/types/database'
-import { Shuffle, Sparkles, Volume2 } from 'lucide-react'
+import { Shuffle, Sparkles, Volume2, Pause } from 'lucide-react'
 
 export const RandomJoke: React.FC = () => {
   const [randomJoke, setRandomJoke] = useState<JokeWithAuthor | null>(null)
   const [loading, setLoading] = useState(false)
   const [dailyJoke, setDailyJoke] = useState<JokeWithAuthor | null>(null)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null)
 
   useEffect(() => {
     fetchDailyJoke()
@@ -76,10 +79,48 @@ export const RandomJoke: React.FC = () => {
   }
 
   const handleSpeak = (text: string) => {
-    if ('speechSynthesis' in window) {
+    if (!('speechSynthesis' in window)) return
+
+    if (!isSpeaking) {
+      // Start speaking
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = 'pl-PL'
+
+      utterance.onstart = () => {
+        setIsSpeaking(true)
+        setIsPaused(false)
+      }
+
+      utterance.onend = () => {
+        setIsSpeaking(false)
+        setIsPaused(false)
+        setCurrentUtterance(null)
+      }
+
+      utterance.onerror = () => {
+        setIsSpeaking(false)
+        setIsPaused(false)
+        setCurrentUtterance(null)
+      }
+
+      utterance.onpause = () => {
+        setIsPaused(true)
+      }
+
+      utterance.onresume = () => {
+        setIsPaused(false)
+      }
+
+      setCurrentUtterance(utterance)
       window.speechSynthesis.speak(utterance)
+    } else if (isPaused) {
+      // Resume if paused
+      window.speechSynthesis.resume()
+      setIsPaused(false)
+    } else {
+      // Pause if speaking
+      window.speechSynthesis.pause()
+      setIsPaused(true)
     }
   }
 
@@ -129,9 +170,16 @@ export const RandomJoke: React.FC = () => {
                 <button
                   onClick={() => randomJoke && handleSpeak(randomJoke.content)}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-content-muted hover:text-primary hover:bg-primary/5 transition-all duration-200"
+                  title={!isSpeaking ? 'Przeczytaj na głos' : (isPaused ? 'Wznów odtwarzanie' : 'Wstrzymaj odtwarzanie')}
                 >
-                  <Volume2 className="h-4 w-4" />
-                  Przeczytaj
+                  {!isSpeaking ? (
+                    <Volume2 className="h-4 w-4" />
+                  ) : isPaused ? (
+                    <Volume2 className="h-4 w-4 animate-pulse" />
+                  ) : (
+                    <Pause className="h-4 w-4 animate-pulse" />
+                  )}
+                  {!isSpeaking ? 'Przeczytaj' : (isPaused ? 'Wznów' : 'Wstrzymaj')}
                 </button>
               </div>
             </div>
@@ -179,9 +227,16 @@ export const RandomJoke: React.FC = () => {
               <button
                 onClick={() => handleSpeak(dailyJoke.content)}
                 className="flex items-center gap-2 px-3 py-1 rounded-lg text-sm text-content-muted hover:text-accent hover:bg-accent/5 transition-all duration-200"
+                title={!isSpeaking ? 'Przeczytaj na głos' : (isPaused ? 'Wznów odtwarzanie' : 'Wstrzymaj odtwarzanie')}
               >
-                <Volume2 className="h-4 w-4" />
-                Przeczytaj na głos
+                {!isSpeaking ? (
+                  <Volume2 className="h-4 w-4" />
+                ) : isPaused ? (
+                  <Volume2 className="h-4 w-4 animate-pulse" />
+                ) : (
+                  <Pause className="h-4 w-4 animate-pulse" />
+                )}
+                {!isSpeaking ? 'Przeczytaj na głos' : (isPaused ? 'Wznów' : 'Wstrzymaj')}
               </button>
             </div>
           </div>

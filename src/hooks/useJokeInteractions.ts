@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useVoteMutation, useFavoriteMutation } from './useJokes'
 import { JokeWithAuthor } from '@/types/database'
@@ -245,40 +245,92 @@ export function useJokeShare(joke: JokeWithAuthor) {
 // Hook for text-to-speech functionality
 export function useTextToSpeech(text: string) {
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
+  const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null)
 
   // Check if speech synthesis is supported
-  useState(() => {
+  useEffect(() => {
     setIsSupported('speechSynthesis' in window)
-  })
+  }, [])
 
   const speak = useCallback(() => {
     if (!isSupported) return
 
-    // Stop any ongoing speech
+    if (isPaused) {
+      // Resume if paused
+      window.speechSynthesis.resume()
+      setIsPaused(false)
+      return
+    }
+
+    // Stop any ongoing speech and start new
     window.speechSynthesis.cancel()
 
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'pl-PL'
 
-    utterance.onstart = () => setIsSpeaking(true)
-    utterance.onend = () => setIsSpeaking(false)
-    utterance.onerror = () => setIsSpeaking(false)
+    utterance.onstart = () => {
+      setIsSpeaking(true)
+      setIsPaused(false)
+    }
 
+    utterance.onend = () => {
+      setIsSpeaking(false)
+      setIsPaused(false)
+      setCurrentUtterance(null)
+    }
+
+    utterance.onerror = () => {
+      setIsSpeaking(false)
+      setIsPaused(false)
+      setCurrentUtterance(null)
+    }
+
+    utterance.onpause = () => {
+      setIsPaused(true)
+    }
+
+    utterance.onresume = () => {
+      setIsPaused(false)
+    }
+
+    setCurrentUtterance(utterance)
     window.speechSynthesis.speak(utterance)
-  }, [text, isSupported])
+  }, [text, isSupported, isPaused])
+
+  const togglePlayPause = useCallback(() => {
+    if (!isSupported) return
+
+    if (!isSpeaking) {
+      // Start speaking
+      speak()
+    } else if (isPaused) {
+      // Resume if paused
+      window.speechSynthesis.resume()
+      setIsPaused(false)
+    } else {
+      // Pause if speaking
+      window.speechSynthesis.pause()
+      setIsPaused(true)
+    }
+  }, [isSupported, isSpeaking, isPaused, speak])
 
   const stop = useCallback(() => {
     if (isSupported) {
       window.speechSynthesis.cancel()
       setIsSpeaking(false)
+      setIsPaused(false)
+      setCurrentUtterance(null)
     }
   }, [isSupported])
 
   return {
     isSpeaking,
+    isPaused,
     isSupported,
     speak,
-    stop
+    stop,
+    togglePlayPause
   }
 }

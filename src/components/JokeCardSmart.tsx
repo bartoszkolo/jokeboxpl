@@ -116,6 +116,7 @@ export function JokeCardSmart({ joke, onVoteChange, onJokeUpdate }: JokeCardSmar
       shareTitle={share.shareTitle}
       isTextToSpeechSupported={textToSpeech.isSupported}
       isTextToSpeechSpeaking={textToSpeech.isSpeaking}
+      isTextToSpeechPaused={textToSpeech.isPaused}
       isEditing={isEditing}
       editContent={editContent}
       editCategoryId={editCategoryId}
@@ -124,7 +125,7 @@ export function JokeCardSmart({ joke, onVoteChange, onJokeUpdate }: JokeCardSmar
       onVote={vote.handleVote}
       onFavorite={favorite.handleFavorite}
       onShare={share.toggleShare}
-      onTextToSpeech={textToSpeech.speak}
+      onTextToSpeech={textToSpeech.togglePlayPause}
       onEditStart={handleEditStart}
       onEditCancel={handleEditCancel}
       onEditSave={handleEditSave}
