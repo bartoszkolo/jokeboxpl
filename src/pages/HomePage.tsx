@@ -5,11 +5,12 @@ import { JokeCard } from '@/components/JokeCard'
 import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
 import { Pagination } from '@/components/Pagination'
 import { useAuth } from '@/contexts/AuthContext'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Shuffle } from 'lucide-react'
 
 export function HomePage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
 
@@ -95,6 +96,10 @@ export function HomePage() {
   const handleCategoryChange = (categoryId: number | null) => {
     setSelectedCategory(categoryId)
     setCurrentPage(0) // Reset to first page when category changes
+  }
+
+  const handleCategoryClick = (category: Category) => {
+    navigate(`/kategoria/${category.slug}`)
   }
 
   const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
@@ -236,28 +241,28 @@ export function HomePage() {
             <div className="bg-card rounded-xl shadow-sm border border-border p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-foreground mb-4 heading">Kategorie</h2>
               <div className="space-y-2">
-                <button
-                  onClick={() => handleCategoryChange(null)}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                <Link
+                  to="/"
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium block ${
                     selectedCategory === null
                       ? 'bg-primary text-primary-foreground shadow-md'
                       : 'bg-background text-content-muted hover:bg-primary hover:text-primary-foreground border border-border'
                   }`}
                 >
                   Wszystkie
-                </button>
+                </Link>
                 {categories.map(category => (
-                  <button
+                  <Link
                     key={category.id}
-                    onClick={() => handleCategoryChange(category.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                    to={`/kategoria/${category.slug}`}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium block ${
                       selectedCategory === category.id
                         ? 'bg-primary text-primary-foreground shadow-md'
                         : 'bg-background text-content-muted hover:bg-primary hover:text-primary-foreground border border-border'
                     }`}
                   >
                     {category.name}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>
