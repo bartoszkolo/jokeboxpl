@@ -95,7 +95,7 @@ export async function generateSitemap(): Promise<string> {
 
     // Individual joke pages
     const jokePages: SitemapEntry[] = (jokes || []).map(joke => ({
-      url: `${SITE_URL}/dowcip/${joke.slug}`,
+      url: `${SITE_URL}/${joke.categories?.slug || 'kategoria'}/${joke.slug}`,
       lastmod: joke.created_at,
       changefreq: 'monthly' as const,
       priority: 0.6

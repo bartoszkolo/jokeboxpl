@@ -225,7 +225,7 @@ export function AddJokePage() {
                         </p>
                         {duplicateWarning.similarJoke.slug ? (
                           <a
-                            href={`/dowcip/${duplicateWarning.similarJoke.slug}`}
+                            href={`/${duplicateWarning.similarJoke.categories?.slug || 'kategoria'}/${duplicateWarning.similarJoke.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center text-xs text-yellow-700 hover:text-yellow-900 underline font-medium"

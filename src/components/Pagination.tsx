@@ -39,11 +39,17 @@ export function Pagination({ currentPage, totalPages, onPageChange, loading = fa
 
   const visiblePages = getVisiblePages()
 
+  const handlePageChange = (page: number) => {
+    onPageChange(page)
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <div className="flex items-center space-x-1">
       {/* Previous Button */}
       <button
-        onClick={() => onPageChange(currentPage - 1)}
+        onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 0 || loading}
         className="flex items-center justify-center w-10 h-10 rounded-lg border border-border bg-card text-card-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         title="Poprzednia strona"
@@ -61,7 +67,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, loading = fa
               </span>
             ) : (
               <button
-                onClick={() => onPageChange((page as number) - 1)} // Convert to 0-based index
+                onClick={() => handlePageChange((page as number) - 1)} // Convert to 0-based index
                 disabled={loading}
                 className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors duration-200 ${
                   (page as number) - 1 === currentPage
@@ -79,7 +85,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, loading = fa
 
       {/* Next Button */}
       <button
-        onClick={() => onPageChange(currentPage + 1)}
+        onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage >= totalPages - 1 || loading}
         className="flex items-center justify-center w-10 h-10 rounded-lg border border-border bg-card text-card-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         title="Następna strona"

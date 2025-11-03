@@ -9,7 +9,7 @@ import { createTextExcerpt } from '@/lib/formatText'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function JokeDetailPage() {
-  const { slug } = useParams<{ slug: string }>()
+  const { categorySlug, slug } = useParams<{ categorySlug?: string, slug?: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
 
@@ -131,13 +131,13 @@ export function JokeDetailPage() {
         <SEO
           title={`Dowcip: ${createTextExcerpt(joke.content, 80)}`}
           description={`${createTextExcerpt(joke.content, 160)} - dodany przez ${joke.profiles?.username || 'Anonim'}`}
-          canonical={`/dowcip/${joke.slug}`}
+          canonical={`/${joke.categories?.slug || 'kategoria'}/${joke.slug}`}
           ogType="article"
           structuredData={[
             createJokeStructuredData(joke),
             createBreadcrumbStructuredData([
               { name: 'Strona główna', url: 'https://jokebox.pl' },
-              { name: 'Dowcip', url: `https://jokebox.pl/dowcip/${joke.slug}` }
+              { name: 'Dowcip', url: `https://jokebox.pl/${joke.categories?.slug || 'kategoria'}/${joke.slug}` }
             ])
           ]}
         />

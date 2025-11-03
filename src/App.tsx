@@ -73,7 +73,7 @@ function App() {
               <Route path="/dodaj" element={<ProtectedRoute><AddJokePage /></ProtectedRoute>} />
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/ulubione" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
-              <Route path="/dowcip/:slug" element={<JokeDetailPage />} />
+              <Route path="/:categorySlug/:slug" element={<JokeDetailPage />} />
               <Route path="/kategoria/:slug" element={<CategoryPage />} />
               <Route path="/regulamin" element={<TermsOfService />} />
               <Route path="/polityka-prywatnosci" element={<PrivacyPolicy />} />

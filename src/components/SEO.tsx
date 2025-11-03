@@ -99,7 +99,7 @@ export const createJokeStructuredData = (joke: {
   },
   datePublished: joke.created_at,
   dateModified: joke.created_at,
-  url: `${SITE_URL}/dowcip/${joke.slug}`,
+  url: `${SITE_URL}/${joke.categories?.slug || 'kategoria'}/${joke.slug}`,
   publisher: {
     '@type': 'Organization',
     name: 'Jokebox',
@@ -107,7 +107,7 @@ export const createJokeStructuredData = (joke: {
   },
   mainEntityOfPage: {
     '@type': 'WebPage',
-    '@id': `${SITE_URL}/dowcip/${joke.slug}`
+    '@id': `${SITE_URL}/${joke.categories?.slug || 'kategoria'}/${joke.slug}`
   },
   interactionStatistic: [
     {

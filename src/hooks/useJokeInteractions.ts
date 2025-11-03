@@ -222,7 +222,7 @@ export function useJokeFavorite(joke: JokeWithAuthor) {
 export function useJokeShare(joke: JokeWithAuthor) {
   const [showShare, setShowShare] = useState(false)
 
-  const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/dowcip/${joke.slug}`
+  const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${joke.categories?.slug || 'kategoria'}/${joke.slug}`
   const shareTitle = joke.content.substring(0, 100) + (joke.content.length > 100 ? '...' : '')
 
   const toggleShare = useCallback(() => {

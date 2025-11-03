@@ -176,7 +176,7 @@ export function JokeCardPresentational({
           </div>
         </div>
       ) : (
-        <Link to={`/dowcip/${joke.slug}`}>
+        <Link to={`/${joke.categories?.slug || 'kategoria'}/${joke.slug}`}>
           <div
             className="joke-content mb-6 hover:text-muted-foreground transition-colors duration-200 text-foreground text-base leading-[1.6] [&:not(:first-child)]:mt-2"
             style={{ whiteSpace: 'pre-wrap' }}
