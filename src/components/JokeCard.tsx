@@ -10,10 +10,21 @@ import { JokeCardSmart } from './JokeCardSmart'
 export interface JokeCardProps {
   joke: JokeWithAuthor
   onVoteChange?: (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => void
+  onJokeUpdate?: (updatedJoke: JokeWithAuthor) => void
 }
 
-export function JokeCard(props: JokeCardProps) {
-  return <JokeCardSmart {...props} />
+export function JokeCard({ joke, onVoteChange, onJokeUpdate }: JokeCardProps) {
+  const handleJokeUpdate = (updatedJoke: JokeWithAuthor) => {
+    onJokeUpdate?.(updatedJoke)
+  }
+
+  return (
+    <JokeCardSmart
+      joke={joke}
+      onVoteChange={onVoteChange}
+      onJokeUpdate={handleJokeUpdate}
+    />
+  )
 }
 
 // Export the smart and presentational components for advanced usage

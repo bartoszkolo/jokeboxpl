@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useJokeBySlug, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor } from '@/types/database'
@@ -29,11 +29,19 @@ export function JokeDetailPage() {
   const favoriteMutation = useFavoriteMutation()
 
   // Combine joke data with user-specific data
-  const joke = baseJoke ? {
-    ...baseJoke,
-    userVote: userVotes?.find(v => v.joke_id === baseJoke.id) || null,
-    isFavorite: userFavorites?.some(f => f.joke_id === baseJoke.id) || false
-  } : null
+  const [joke, setJoke] = useState<JokeWithAuthor | null>(null)
+
+  // Update joke when data changes
+  React.useEffect(() => {
+    if (baseJoke) {
+      const processedJoke = {
+        ...baseJoke,
+        userVote: userVotes?.find(v => v.joke_id === baseJoke.id) || null,
+        isFavorite: userFavorites?.some(f => f.joke_id === baseJoke.id) || false
+      }
+      setJoke(processedJoke)
+    }
+  }, [baseJoke, userVotes, userFavorites])
 
   // Redirect to home if joke not found
   useEffect(() => {
@@ -61,6 +69,17 @@ export function JokeDetailPage() {
       favoriteMutation.mutate({
         jokeId,
         userId: user.id
+      })
+    }
+  }
+
+  const handleJokeUpdate = (updatedJoke: JokeWithAuthor) => {
+    // Update the joke in the local state
+    if (updatedJoke.id === baseJoke?.id) {
+      setJoke({
+        ...updatedJoke,
+        userVote: userVotes?.find(v => v.joke_id === updatedJoke.id) || null,
+        isFavorite: userFavorites?.some(f => f.joke_id === updatedJoke.id) || false
       })
     }
   }
@@ -133,7 +152,7 @@ export function JokeDetailPage() {
           <span>Powrót</span>
         </button>
 
-        <JokeCard joke={joke} onVoteChange={handleVoteChange} />
+        <JokeCard joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
 
         <div className="mt-8 bg-card rounded-xl shadow-sm border border-border p-6">
           <h3 className="text-xl font-bold text-foreground mb-4 heading">

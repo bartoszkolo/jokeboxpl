@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useJokes, useCategories, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
@@ -41,11 +41,17 @@ export function HomePage() {
   const favoriteMutation = useFavoriteMutation()
 
   // Process jokes with user-specific data
-  const jokes = jokesData?.jokes?.map(joke => ({
-    ...joke,
-    userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
-    isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
-  })) || []
+  const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
+
+  // Update jokes when data changes
+  React.useEffect(() => {
+    const processedJokes = jokesData?.jokes?.map(joke => ({
+      ...joke,
+      userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
+      isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
+    })) || []
+    setJokes(processedJokes)
+  }, [jokesData, userVotes, userFavorites])
 
   const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
     // React Query handles optimistic updates automatically, so we don't need to manually update state
@@ -65,6 +71,21 @@ export function HomePage() {
         userId: user.id
       })
     }
+  }
+
+  const handleJokeUpdate = (updatedJoke: JokeWithAuthor) => {
+    // Update the joke in the local state
+    setJokes(prevJokes =>
+      prevJokes.map(joke =>
+        joke.id === updatedJoke.id
+          ? {
+              ...updatedJoke,
+              userVote: userVotes?.find(v => v.joke_id === updatedJoke.id) || null,
+              isFavorite: userFavorites?.some(f => f.joke_id === updatedJoke.id) || false
+            }
+          : joke
+      )
+    )
   }
 
   const handlePageChange = (page: number) => {
@@ -181,7 +202,7 @@ export function HomePage() {
           ) : (
             <div className="space-y-4">
               {jokes.map(joke => (
-                <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} />
+                <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
               ))}
             </div>
           )}

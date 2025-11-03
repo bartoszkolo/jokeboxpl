@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useJokes, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
@@ -54,13 +54,19 @@ export function RankingPage() {
   }
 
   // Process jokes with user-specific data and time filtering
-  const baseJokes = jokesData?.jokes || []
-  const filteredJokes = getFilteredJokes(baseJokes)
-  const jokes = filteredJokes.map(joke => ({
-    ...joke,
-    userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
-    isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
-  }))
+  const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
+
+  // Update jokes when data changes
+  React.useEffect(() => {
+    const baseJokes = jokesData?.jokes || []
+    const filteredJokes = getFilteredJokes(baseJokes)
+    const processedJokes = filteredJokes.map(joke => ({
+      ...joke,
+      userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
+      isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
+    }))
+    setJokes(processedJokes)
+  }, [jokesData, userVotes, userFavorites, timeRange])
 
   const handleVoteChange = async (jokeId: number, voteData?: {upvotes?: number, downvotes?: number, score?: number, userVote?: any}) => {
     if (user && voteData?.userVote?.vote_type) {
@@ -79,6 +85,21 @@ export function RankingPage() {
         userId: user.id
       })
     }
+  }
+
+  const handleJokeUpdate = (updatedJoke: JokeWithAuthor) => {
+    // Update the joke in the local state
+    setJokes(prevJokes =>
+      prevJokes.map(joke =>
+        joke.id === updatedJoke.id
+          ? {
+              ...updatedJoke,
+              userVote: userVotes?.find(v => v.joke_id === updatedJoke.id) || null,
+              isFavorite: userFavorites?.some(f => f.joke_id === updatedJoke.id) || false
+            }
+          : joke
+      )
+    )
   }
 
   // Handle error state
@@ -192,7 +213,7 @@ export function RankingPage() {
                     {index + 1}
                   </div>
                 </div>
-                <JokeCard joke={joke} onVoteChange={handleVoteChange} />
+                <JokeCard joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
               </div>
             ))}
           </div>

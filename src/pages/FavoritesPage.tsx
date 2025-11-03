@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useUserAllFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
@@ -30,7 +30,12 @@ export function FavoritesPage() {
   const voteMutation = useVoteMutation()
   const favoriteMutation = useFavoriteMutation()
 
-  const jokes = favoritesData?.jokes || []
+  const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
+
+  // Update jokes when data changes
+  React.useEffect(() => {
+    setJokes(favoritesData?.jokes || [])
+  }, [favoritesData])
   const totalJokes = favoritesData?.totalCount || 0
   const totalPages = favoritesData?.totalPages || 0
 
@@ -51,6 +56,15 @@ export function FavoritesPage() {
         userId: user.id
       })
     }
+  }
+
+  const handleJokeUpdate = (updatedJoke: JokeWithAuthor) => {
+    // Update the joke in the local state
+    setJokes(prevJokes =>
+      prevJokes.map(joke =>
+        joke.id === updatedJoke.id ? updatedJoke : joke
+      )
+    )
   }
 
   const handlePageChange = (page: number) => {
@@ -123,7 +137,7 @@ export function FavoritesPage() {
         ) : (
           <div className="space-y-4">
             {jokes.map(joke => (
-              <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} />
+              <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
             ))}
           </div>
         )}

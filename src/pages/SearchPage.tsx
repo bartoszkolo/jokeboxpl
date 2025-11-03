@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useSearchJokes, useCategories, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeCard } from '@/components/JokeCard'
@@ -39,11 +39,17 @@ export default function SearchPage() {
   const favoriteMutation = useFavoriteMutation()
 
   // Process jokes with user-specific data
-  const jokes = searchData?.jokes?.map(joke => ({
-    ...joke,
-    userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
-    isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
-  })) || []
+  const [jokes, setJokes] = useState<JokeWithAuthor[]>([])
+
+  // Update jokes when data changes
+  React.useEffect(() => {
+    const processedJokes = searchData?.jokes?.map(joke => ({
+      ...joke,
+      userVote: userVotes?.find(v => v.joke_id === joke.id) || null,
+      isFavorite: userFavorites?.some(f => f.joke_id === joke.id) || false
+    })) || []
+    setJokes(processedJokes)
+  }, [searchData, userVotes, userFavorites])
 
   const totalCount = searchData?.totalCount || 0
 
@@ -64,6 +70,21 @@ export default function SearchPage() {
         userId: user.id
       })
     }
+  }
+
+  const handleJokeUpdate = (updatedJoke: JokeWithAuthor) => {
+    // Update the joke in the local state
+    setJokes(prevJokes =>
+      prevJokes.map(joke =>
+        joke.id === updatedJoke.id
+          ? {
+              ...updatedJoke,
+              userVote: userVotes?.find(v => v.joke_id === updatedJoke.id) || null,
+              isFavorite: userFavorites?.some(f => f.joke_id === updatedJoke.id) || false
+            }
+          : joke
+      )
+    )
   }
 
   // Handle error state
@@ -196,7 +217,7 @@ export default function SearchPage() {
         ) : jokes.length > 0 ? (
           <div className="space-y-4">
             {jokes.map((joke) => (
-              <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} />
+              <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
             ))}
           </div>
         ) : (
