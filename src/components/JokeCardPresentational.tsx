@@ -86,7 +86,7 @@ export function JokeCardPresentational({
             <select
               value={editCategoryId || ''}
               onChange={(e) => onEditCategoryChange?.(e.target.value ? Number(e.target.value) : null)}
-              className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary/80 text-xs font-medium rounded-full border border-primary/20 dark:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <option value="">Bez kategorii</option>
               {categories.map(category => (
@@ -98,7 +98,7 @@ export function JokeCardPresentational({
           ) : joke.categories ? (
             <Link
               to={`/kategoria/${joke.categories.slug}`}
-              className="inline-block px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200"
+              className="inline-block px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary/80 text-xs font-medium rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors duration-200"
             >
               {joke.categories.name}
             </Link>
