@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { useJokes, useCategories, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
+import { InFeedAd, InFeedAdAlternate } from '@/components/InFeedAd'
+import { SidebarAd } from '@/components/SidebarAd'
 import { SEO, createBreadcrumbStructuredData } from '@/components/SEO'
 import { Pagination } from '@/components/Pagination'
 import { useAuth } from '@/contexts/AuthContext'
@@ -206,8 +208,14 @@ export function HomePage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {jokes.map(joke => (
-                <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
+              {jokes.map((joke, index) => (
+                <React.Fragment key={joke.id}>
+                  <JokeCard joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
+                  {/* Insert ad after every 3 jokes */}
+                  {(index + 1) % 3 === 0 && index < jokes.length - 1 && (
+                    index % 6 === 2 ? <InFeedAdAlternate /> : <InFeedAd />
+                  )}
+                </React.Fragment>
               ))}
             </div>
           )}
@@ -238,6 +246,11 @@ export function HomePage() {
 
           {/* Right Sidebar - Categories */}
           <div className="lg:w-64">
+            {/* Sidebar Ad */}
+            <div className="mb-6">
+              <SidebarAd sticky={false} />
+            </div>
+
             <div className="bg-card rounded-xl shadow-sm border border-border p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-foreground mb-4 heading">Kategorie</h2>
               <div className="space-y-2">

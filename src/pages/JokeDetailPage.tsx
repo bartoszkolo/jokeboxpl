@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useJokeBySlug, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
+import { InFeedAd } from '@/components/InFeedAd'
+import { SidebarAdCompact } from '@/components/SidebarAd'
 import { SEO, createJokeStructuredData, createBreadcrumbStructuredData } from '@/components/SEO'
 import { createTextExcerpt } from '@/lib/formatText'
 import { useAuth } from '@/contexts/AuthContext'
@@ -143,47 +145,77 @@ export function JokeDetailPage() {
         />
       )}
       <div className="min-h-screen bg-muted/30">
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-6 text-primary hover:text-primary/80 flex items-center space-x-2"
-        >
-          <span>←</span>
-          <span>Powrót</span>
-        </button>
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+        {/* Main Content Layout */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Content Area */}
+          <div className="flex-1">
+            <button
+              onClick={() => navigate(-1)}
+              className="mb-6 text-primary hover:text-primary/80 flex items-center space-x-2"
+            >
+              <span>←</span>
+              <span>Powrót</span>
+            </button>
 
-        <JokeCard joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
+            <JokeCard joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
 
-        <div className="mt-8 bg-card rounded-xl shadow-sm border border-border p-6">
-          <h3 className="text-xl font-bold text-foreground mb-4 heading">
-            O tym dowcipie
-          </h3>
-          <div className="space-y-2 text-content-muted">
-            <p>
-              <span className="font-semibold">Dodane:</span>{' '}
-              {new Date(joke.created_at).toLocaleDateString('pl-PL', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
-            <p>
-              <span className="font-semibold">Autor:</span>{' '}
-              {joke.profiles?.username || 'Anonim'}
-            </p>
-            {joke.categories && (
-              <p>
-                <span className="font-semibold">Kategoria:</span>{' '}
-                <button
-                  onClick={() => navigate(`/kategoria/${joke.categories!.slug}`)}
-                  className="text-primary hover:text-primary/80 hover:underline"
-                >
-                  {joke.categories.name}
-                </button>
-              </p>
-            )}
+            {/* Ad after joke content */}
+            <div className="mt-8 mb-8">
+              <InFeedAd />
+            </div>
+
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+              <h3 className="text-xl font-bold text-foreground mb-4 heading">
+                O tym dowcipie
+              </h3>
+              <div className="space-y-2 text-content-muted">
+                <p>
+                  <span className="font-semibold">Dodane:</span>{' '}
+                  {new Date(joke.created_at).toLocaleDateString('pl-PL', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+                <p>
+                  <span className="font-semibold">Autor:</span>{' '}
+                  {joke.profiles?.username || 'Anonim'}
+                </p>
+                {joke.categories && (
+                  <p>
+                    <span className="font-semibold">Kategoria:</span>{' '}
+                    <button
+                      onClick={() => navigate(`/kategoria/${joke.categories!.slug}`)}
+                      className="text-primary hover:text-primary/80 hover:underline"
+                    >
+                      {joke.categories.name}
+                    </button>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="lg:w-64">
+            <div className="mb-6">
+              <SidebarAdCompact sticky={true} />
+            </div>
+
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6 sticky top-24">
+              <h3 className="text-lg font-semibold text-foreground mb-4 heading">Informacje</h3>
+              <div className="space-y-3">
+                <div className="text-sm text-content-muted">
+                  <p>Autor: {joke.profiles?.username || 'Anonim'}</p>
+                  {joke.categories && (
+                    <p>Kategoria: {joke.categories.name}</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

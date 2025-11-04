@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useJokes, useCategory, useUserVotes, useUserFavorites, useVoteMutation, useFavoriteMutation } from '@/hooks/useJokes'
 import { JokeWithAuthor, Category } from '@/types/database'
 import { JokeCard } from '@/components/JokeCard'
+import { InFeedAd, InFeedAdAlternate } from '@/components/InFeedAd'
+import { SidebarAd } from '@/components/SidebarAd'
 import { SEO, createCategoryStructuredData, createBreadcrumbStructuredData } from '@/components/SEO'
 import { Pagination } from '@/components/Pagination'
 import { useAuth } from '@/contexts/AuthContext'
@@ -176,21 +178,25 @@ export function CategoryPage() {
           <span>Powrót</span>
         </button>
 
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2 heading">
-            {category.name}
-          </h1>
-          {category.description_seo && (
-            <p className="text-content-muted">
-              {category.description_seo}
-            </p>
-          )}
-          <p className="text-sm text-muted-foreground mt-2">
-            Wyświetlono {jokes.length} z {totalJokes} dowcipów w tej kategorii
-          </p>
-        </div>
+        {/* Main Content Layout */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Content Area */}
+          <div className="flex-1">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-foreground mb-2 heading">
+                {category.name}
+              </h1>
+              {category.description_seo && (
+                <p className="text-content-muted">
+                  {category.description_seo}
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground mt-2">
+                Wyświetlono {jokes.length} z {totalJokes} dowcipów w tej kategorii
+              </p>
+            </div>
 
-        <div className="bg-card rounded-xl shadow-sm border border-border p-8">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-8">
           {jokes.length === 0 ? (
             <div className="text-center py-12">
               <div className="mb-6">
@@ -207,8 +213,14 @@ export function CategoryPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {jokes.map(joke => (
-                <JokeCard key={joke.id} joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
+              {jokes.map((joke, index) => (
+                <React.Fragment key={joke.id}>
+                  <JokeCard joke={joke} onVoteChange={handleVoteChange} onJokeUpdate={handleJokeUpdate} />
+                  {/* Insert ad after every 3 jokes */}
+                  {(index + 1) % 3 === 0 && index < jokes.length - 1 && (
+                    index % 6 === 2 ? <InFeedAdAlternate /> : <InFeedAd />
+                  )}
+                </React.Fragment>
               ))}
             </div>
           )}
@@ -233,6 +245,26 @@ export function CategoryPage() {
               </p>
             </div>
           )}
+        </div>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="lg:w-64">
+            {/* Sidebar Ad */}
+            <div className="mb-6">
+              <SidebarAd sticky={false} />
+            </div>
+
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6 sticky top-24">
+              <h3 className="text-lg font-semibold text-foreground mb-4 heading">Informacje</h3>
+              <div className="space-y-3">
+                <div className="text-sm text-content-muted">
+                  <p>Liczba dowcipów: {totalJokes}</p>
+                  <p>Kategoria: {category.name}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
